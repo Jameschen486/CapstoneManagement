@@ -1,0 +1,7 @@
+FROM python:3.8
+WORKDIR /app/backend
+COPY . /app/backend
+RUN pip install --no-cache-dir -r requirements.txt
+ENV PYTHONUNBUFFERED=1
+EXPOSE 5432
+CMD ["pytest", "-r", "/tests"]

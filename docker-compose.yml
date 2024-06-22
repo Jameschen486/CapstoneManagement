@@ -1,0 +1,31 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - 5432:5432
+    #command: --init-file /data/application/projdb.sql
+    volumes:
+    # - ~/apps/postgres:/var/lib/postgresql/data
+      - ./backend/projdb.sql:/docker-entrypoint-initdb.d/projdb.sql
+    #  - ./backend/projdb.sql:/data/application/projdb.sql
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=projdb
+    restart: always
+    networks:
+      - testnet
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend:/app/backend
+    environment:
+      - PATH=${PATH}:/backend
+      - PYTHONPATH=${PYTHONPATH}:/app/backend
+    depends_on:
+      - postgres
+    networks:
+      - testnet
+networks:
+  testnet:
