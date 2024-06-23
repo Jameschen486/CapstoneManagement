@@ -18,7 +18,7 @@ def auth_login():
     password = request.form['password']
     return jsonify(login(username,password))
 
-@app.route('/create_group', methods=['POST'])
+@app.route('/group/create', methods=['POST'])
 def create_group_endpoint():
     data = request.form()
     group_name = data.get('name')
@@ -28,11 +28,11 @@ def create_group_endpoint():
     response, status_code = groups.create_group(group_name, group_description, creator_id)
     return jsonify(response), status_code
 
-@app.route('/groups', methods=['GET'])
+@app.route('/group/view', methods=['GET'])
 def view_groups_route():
     return jsonify(groups.view_groups())
 
-@app.route('/join_group', methods=['POST'])
+@app.route('/group/join', methods=['POST'])
 def join_group_route():
     data = request.form()
     group_id = data.get('group_id')
