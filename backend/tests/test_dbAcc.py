@@ -49,15 +49,19 @@ def test_group_create_retrieve():
   groupname = "testgroup"
   global groupid
   groupid = dbAcc.create_group(own_d[0], groupname)
-  group_d = dbAcc.get_group_details(groupid)
+  group_d = dbAcc.get_group_by_id(groupid)
   assert group_d == (groupid, own_d[0], groupname)
   own_deets = dbAcc.get_user_by_id(own_d[0])
   assert own_deets[5] == groupid
+  count = dbAcc.get_groupcount_by_name(groupname)
+  assert count == 1
 
 def test_add_get_users():
   dbAcc.add_user_to_group(use_d[0], groupid)
   members = dbAcc.get_group_members(groupid)
   assert (use_d[0], use_d[2], use_d[3]) in members
   assert (own_d[0], own_d[2], own_d[3]) in members
+  given = dbAcc.get_all_groups()
+  assert (groupid, "testgroup", 2) in given
   clear_users()
   clear_groups()
