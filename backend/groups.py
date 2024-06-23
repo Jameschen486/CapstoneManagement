@@ -1,83 +1,81 @@
 import psycopg2
-from error import InputError, AccessError
-from dbAcc import create_group, get_all_groups, get_groupcount_by_name, get_user_by_id, get_group_members, create_join_request, add_user_to_group, remove_all_join_requests, remove_join_request, get_group_by_id, get_join_requests, remove_user_from_group
+from backend.error import InputError, AccessError
 
-def create_group(group_name, creator_id):
+def get_db_connection():
+    return True
 
-    # Error case 1: No group name is provided
-    if group_name == None:
-        raise InputError(description="Group name is required")
+def create_group(group_name, group_description, creator_id):
     
-    no_groups = get_groupcount_by_name(group_name)
+    # Error case 1: No group name is provided
+    if not group_name:
+        raise InputError(description="Group name is required")
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT id FROM groups WHERE name = %s', (group_name,))
+    existing_group = cur.fetchone()
     
     # Error Case 2: A group with same name already registered.
-    if no_groups > 0:
+    if existing_group:
+        cur.close()
+        conn.close()
         raise InputError(description="Group with the same name already exists")
-    
-    group_id = create_group(group_name, creator_id)
+
+    cur.execute('INSERT INTO groups (name, description, creator_id) VALUES (%s, %s, %s) RETURNING id',
+                (group_name, group_description, creator_id))
+    group_id = cur.fetchone()[0]
+
+    cur.execute('INSERT INTO group_members (group_id, student_id) VALUES (%s, %s)', (group_id, creator_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    # Successful creation
     return {"message": "Group created successfully!", "group_id": group_id}, 201
 
 def view_groups():
-    return get_all_groups()
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM groups')
+    groups = cur.fetchall()
+    cur.close()
+    conn.close()
 
+    groups_list = []
+    for group in groups:
+        group_data = {
+            'id': group[0],
+            'name': group[1],
+            'description': group[2],
+            'creator_id': group[3]
+        }
+        groups_list.append(group_data)
+
+    return groups_list
 
 def join_group(group_id, student_id, group_capacity):
+    conn = get_db_connection()
+    cur = conn.cursor()
 
     # Check 1: The user is not already in a group
-    if get_user_by_id(student_id)[5] != None:
+    cur.execute('SELECT group_id FROM group_members WHERE student_id = %s', (student_id,))
+    user_group = cur.fetchone()
+    if user_group:
+        cur.close()
+        conn.close()
         raise AccessError(description="User is already in a group")
     
     # Check 2: The group is full or not
-    if len(get_group_members(group_id)) >= group_capacity:
+    cur.execute('SELECT COUNT(*) FROM group_members WHERE group_id = %s', (group_id,))
+    group_member_count = cur.fetchone()[0]
+    if group_member_count >= group_capacity:
+        cur.close()
+        conn.close()
         raise AccessError(description="Group is full")
-    
-    # Send a join request
-    create_join_request(student_id, group_id)
+
+    cur.execute('INSERT INTO join_requests (group_id, student_id) VALUES (%s, %s)', (group_id, student_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+
     return {"message": "Join request sent successfully!"}, 201
-
-def handle_join_request(user_id, applicant_id, group_id, accept, group_capacity):
-    c_id = get_group_by_id(group_id)[1]
-    if user_id != c_id:
-        raise AccessError(description="You do not have access to accept/reject join requests")
-    
-    if accept:
-        if len(get_group_members(group_id)) >= group_capacity:
-            raise AccessError(description="Group is full")
-        
-        add_user_to_group(applicant_id, group_id)
-        remove_all_join_requests(applicant_id)
-        return  {"message": f"User {applicant_id} added to your group."}, 201
-        # TODO In next sprint send notification to applicant.
-    else:
-        remove_join_request(applicant_id, group_id)
-        return {"message": f"User {applicant_id} rejected."}, 201
-        # TODO In next sprint send notification to applicant.
-
-def view_group_details(group_id):
-    group_details = get_group_by_id(group_id)
-    group_members = get_group_members(group_id)
-    
-    if not group_details:
-        raise InputError(description="Group not found")
-
-    return {
-        "groupid": group_details[0],
-        "ownerid": group_details[1],
-        "groupname": group_details[2],
-        "group_members": group_members
-    }, 200
-
-def view_join_requests(user_id):
-    join_requests = get_join_requests(user_id)
-
-    if join_requests == []:
-        return {"message": "No join requests"}, 200
-    
-    return {"join_requests": join_requests}, 200
-
-def leave_group(user_id):
-    if get_user_by_id(user_id)[6] == None:
-        raise AccessError(description="User is not a member of any group")
-    
-    remove_user_from_group(user_id)
-    return {"message": "User has left the group"}, 200
