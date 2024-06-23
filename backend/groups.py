@@ -1,5 +1,5 @@
 import psycopg2
-from src.error import InputError, AccessError
+from backend.error import InputError, AccessError
 
 def get_db_connection():
     return True
