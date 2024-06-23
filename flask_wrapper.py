@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from src import groups
+from backend import groups
 from users import login
 
 MAX_STUDENT_PER_GROUP = 6
@@ -28,7 +28,7 @@ def create_group_endpoint():
     response, status_code = groups.create_group(group_name, group_description, creator_id)
     return jsonify(response), status_code
 
-@app.route('/group/view', methods=['GET'])
+@app.route('/groups/view', methods=['GET'])
 def view_groups_route():
     return jsonify(groups.view_groups())
 
