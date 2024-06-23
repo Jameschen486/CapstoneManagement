@@ -1,5 +1,6 @@
 import psycopg2
 
+# TODO: swap to using connection pool
 try: 
   conn = psycopg2.connect(dbname='projdb', user='postgres', password='postgres', host="postgres")
 except: 
@@ -64,51 +65,54 @@ def get_user_by_email(email):
 #--------------------------------
 #   Groups
 # Manipulation
-# def create_group(ownerid, group_name):
-#   ''' Creates a new group, sets its owner, and adds its owner to the group
-#   Parameters:
-#     - ownerid (integer), user id of owner/creator
-#     - group_name (string)
-#   '''
-#   curs = conn.cursor()
-#   curs.execute("INSERT INTO groups (groupowner, groupname) VALUES (%s, %s) RETURNING groupid", (ownerid, group_name))
-#   new_group_id = curs.fetchone()[0]
-#   add_user_to_group(ownerid, new_group_id)
+def create_group(ownerid, group_name):
+  ''' Creates a new group, sets its owner, and adds its owner to the group
+  Parameters:
+    - ownerid (integer), user id of owner/creator
+    - group_name (string)
+  Returns:
+    - groupid (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("INSERT INTO groups (groupowner, groupname) VALUES (%s, %s) RETURNING groupid", (ownerid, group_name))
+  new_group_id = curs.fetchone()[0]
+  add_user_to_group(ownerid, new_group_id)
+  return new_group_id
   
-# def add_user_to_group(to_add, group_id):
-#   ''' Adds user to specified group
-#   Parameters
-#     - to_add (integer), user id of person to add
-#     - group_id (integer)
-#   '''
-#   curs = conn.cursor()
-#   curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, to_add))
+def add_user_to_group(to_add, group_id):
+  ''' Adds user to specified group
+  Parameters
+    - to_add (integer), user id of person to add
+    - group_id (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, to_add))
 
-# # Retrieval
-# def get_group_details(gropuid):
-#   ''' Queries the database for information on a particular group
-#   Parameters:
-#     - groupid (integer)
-#   returns:
-#     - tuple (groupid, ownerid, group name)
-#   '''
-#   curs = conn.cursor()
-#   curs.execute("SELECT FROM groups WHERE groupid=%s", groupid)
-#   q_ret = curs.fetchone()
-#   return (q_ret[0], q_ret[1], q_ret[2])
+# Retrieval
+def get_group_details(groupid):
+  ''' Queries the database for information on a particular group
+  Parameters:
+    - groupid (integer)
+  returns:
+    - tuple (groupid, ownerid, group name)
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM groups WHERE groupid=%s", (groupid,))
+  q_ret = curs.fetchone()
+  return (q_ret[0], q_ret[1], q_ret[2])
   
-# def get_group_memebers(groupid):
-#   ''' Get details for all members of a given group
-#   Parameters:
-#     - groupid (integer)
-#   returns:
-#     - [tuple] (userid, first name, last name) 
-#     - None if group does not exist
-#   '''
-#   curs = conn.cursor()
-#   curs.execute("SELECT * FROM users WHERE groupid = %s", groupid)
-#   ret_list = []
-#   for rec in curs:
-#     ret_list.append((rec[0], rec[2], rec[3]))
-#   return ret_list
+def get_group_members(groupid):
+  ''' Get details for all members of a given group
+  Parameters:
+    - groupid (integer)
+  returns:
+    - [tuple] (userid, first name, last name) 
+    - None if group does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM users WHERE groupid = %s", (groupid,))
+  ret_list = []
+  for rec in curs:
+    ret_list.append((rec[0], rec[2], rec[3]))
+  return ret_list
   
