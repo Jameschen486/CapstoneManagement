@@ -89,7 +89,23 @@ def add_user_to_group(to_add, group_id):
   curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, to_add))
 
 # Retrieval
-def get_group_details(groupid):
+def get_all_groups():
+  ''' Queries databse for details on every group
+  Returns:
+    - [(groupid, groupname, member_count)] 
+  '''
+  curs = conn.cursor()
+  curs.execute("""SELECT groups.groupid, groups.groupname, COUNT(users.userid) 
+               FROM groups 
+               JOIN users 
+               ON users.groupid = groups.groupid
+               GROUP BY groups.groupid""")
+  ret_list = []
+  for rec in curs:
+    ret_list.append(rec)
+  return ret_list
+
+def get_group_by_id(groupid):
   ''' Queries the database for information on a particular group
   Parameters:
     - groupid (integer)
@@ -100,6 +116,17 @@ def get_group_details(groupid):
   curs.execute("SELECT * FROM groups WHERE groupid=%s", (groupid,))
   q_ret = curs.fetchone()
   return (q_ret[0], q_ret[1], q_ret[2])
+
+def get_groupcount_by_name(groupname):
+  ''' Queries the databse for the number of groups with a given name
+  Parameters:
+   - groupname (string)
+  Returns:
+    - int, number of groups sharing the given name
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT count(*) FROM groups WHERE groupname = %s", (groupname,))
+  return curs.fetchone()[0]
   
 def get_group_members(groupid):
   ''' Get details for all members of a given group
