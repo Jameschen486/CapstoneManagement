@@ -63,5 +63,9 @@ def test_add_get_users():
   assert (own_d[0], own_d[2], own_d[3]) in members
   given = dbAcc.get_all_groups()
   assert (groupid, "testgroup", 2) in given
+  newgroupid = dbAcc.create_group(own_d[0], "newgroup")
+  given = dbAcc.get_all_groups()
+  assert (groupid, "testgroup", 1) in given
+  assert (newgroupid, "newgroup", 1) in given
   clear_users()
   clear_groups()
