@@ -24,6 +24,7 @@ def create_user(email, password, first_name, last_name, role):
   curs = conn.cursor()
   curs.execute("INSERT INTO users (email, password, firstname, lastname, role) VALUES (%s, %s, %s, %s, %s) RETURNING userid", 
                (email, password, first_name, last_name, role))
+  conn.commit()
   return curs.fetchone()[0]
 
 # def update_role(userid, role):
@@ -74,7 +75,8 @@ def create_group(ownerid, group_name):
     - groupid (integer)
   '''
   curs = conn.cursor()
-  curs.execute("INSERT INTO groups (groupowner, groupname) VALUES (%s, %s) RETURNING groupid", (ownerid, group_name))
+  curs.execute("INSERT INTO groups (ownerid, groupname) VALUES (%s, %s) RETURNING groupid", (ownerid, group_name))
+  conn.commit()
   new_group_id = curs.fetchone()[0]
   add_user_to_group(ownerid, new_group_id)
   return new_group_id
@@ -143,81 +145,56 @@ def get_group_members(groupid):
     ret_list.append((rec[0], rec[2], rec[3]))
   return ret_list
 
-
-
-
-
-
-#--------------------------------
-#   Project
-# Manipulation
-def create_project(name, owner_id, channel_id, group_id, spec, description, 
-                   requirement, required_knowledge, outcome, additional):
-  ''' Creates a project in the databse
+def create_join_request(userid, groupid):
+  ''' Creates a requests for userid to join groupid
   Parameters:
-
-  Returns:
-    - integer, the project id
+    - userid (integer), user making the request
+    - groupid (integer), group being requested to join
   '''
   curs = conn.cursor()
-  curs.execute("INSERT INTO projects (ownerid, channel, groupno, spec, description, req, reqKnowledge, outcomes, additional) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING projectid", (owner_id, channel_id, group_id, spec, description, requirement, required_knowledge, outcome, additional))
-  #curs.execute("INSERT INTO projects (projectname, ownerid, channel, groupno, spec, description, req, reqKnowledge, outcomes, additional) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING projectid", (name, owner_id, channel_id, group_id, spec, description, requirement, required_knowledge, outcome, additional))
-  return curs.fetchone()[0]
-
-
-
-def get_project_by_id(project_id):
-  ''' Queries the database for project information
-  Parameters:
-    - projectid (integer)
-  Returns:
-    - tuple (project_id, owner_id, channel_id, group_id, spec, description, 
-             requirement, required_knowledge, outcome, additional)
-    - None, if user does not exist
-  Notes:
-    Does no checking, ensure you do not create two users with the same email address
-  '''
-  curs = conn.cursor()
-  curs.execute("SELECT * FROM projects WHERE projectid = %s", (project_id,))
-  return curs.fetchone()
-
-
-def get_all_projects():
-  ''' Queries the database for project information
-  Parameters:
-    - projectid (integer)
-  Returns:
-    - tuple (project_id, owner_id, channel_id, group_id, spec, description, 
-             requirement, required_knowledge, outcome, additional)
-    - None, if user does not exist
-  Notes:
-    Does no checking, ensure you do not create two users with the same email address
-  '''
-  curs = conn.cursor()
-  curs.execute("SELECT * FROM projects")
-  return curs.fetchall()
-
-
-def update_project(project_id, owner_id, channel_id, group_id, spec, description, 
-                   requirement, required_knowledge, outcome, additional):
-  ''' updates the project in the databse 
-  Parameters:
-
-
-  '''
-  curs = conn.cursor()
-  #this only update group_id
-  curs.execute("UPDATE project SET groupid = %s WHERE projectid = %s", (group_id, project_id))
+  curs.execute("INSERT INTO grouprequests (userid, groupid) VALUES (%s, %s)", (userid, groupid))
+  conn.commit()
   
-
-def delete_project_by_id(project_id):
-  ''' Queries the database for project information
+def remove_all_join_requests(userid):
+  ''' Removes all group join requests that a user has made
   Parameters:
-    - projectid (integer)
-
+    - userid (integer), user whose requests should be removed
   Notes:
-    Does no checking
+    For use when a users request is approved, we should delete all others
   '''
-  pass
-
-
+  curs = conn.cursor()
+  curs.execute("DELETE FROM grouprequests WHERE userid = %s", (userid,))
+  conn.commit()
+  
+def remove_join_request(userid, groupid):
+  ''' Removes a single join request for a group from a user
+  Parameters:
+    - userid (integer), userid of who made the request
+    - groupid (integer), groupid of specific request
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM grouprequests WHERE userid = %s AND groupid = %s", (userid, groupid))
+  conn.commit()
+  
+def get_join_requests(userid):
+  ''' Gets all join requests for group that the user is an owner of
+  Parameters:
+    - userid (integer)
+  Returns:
+    - [tuples(userid, first_name, last_name)], details of user attempting to join
+    - [], if there are no requests
+  '''
+  curs = conn.cursor()
+  curs.execute("""SELECT grouprequests.userid, users.firstName, users.lastName
+               FROM groups
+               JOIN grouprequests
+               ON groups.groupid = grouprequests.groupid
+               JOIN users
+               ON users.userid = grouprequests.userid
+               WHERE groups.ownerid = %s
+               """, (userid,))
+  ret_list = []
+  for rec in curs:
+    ret_list.append(rec)
+  return ret_list
+  
