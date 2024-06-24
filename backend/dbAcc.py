@@ -24,6 +24,7 @@ def create_user(email, password, first_name, last_name, role):
   curs = conn.cursor()
   curs.execute("INSERT INTO users (email, password, firstname, lastname, role) VALUES (%s, %s, %s, %s, %s) RETURNING userid", 
                (email, password, first_name, last_name, role))
+  conn.commit()
   return curs.fetchone()[0]
 
 # def update_role(userid, role):
@@ -74,7 +75,8 @@ def create_group(ownerid, group_name):
     - groupid (integer)
   '''
   curs = conn.cursor()
-  curs.execute("INSERT INTO groups (groupowner, groupname) VALUES (%s, %s) RETURNING groupid", (ownerid, group_name))
+  curs.execute("INSERT INTO groups (ownerid, groupname) VALUES (%s, %s) RETURNING groupid", (ownerid, group_name))
+  conn.commit()
   new_group_id = curs.fetchone()[0]
   add_user_to_group(ownerid, new_group_id)
   return new_group_id
@@ -141,5 +143,58 @@ def get_group_members(groupid):
   ret_list = []
   for rec in curs:
     ret_list.append((rec[0], rec[2], rec[3]))
+  return ret_list
+
+def create_join_request(userid, groupid):
+  ''' Creates a requests for userid to join groupid
+  Parameters:
+    - userid (integer), user making the request
+    - groupid (integer), group being requested to join
+  '''
+  curs = conn.cursor()
+  curs.execute("INSERT INTO grouprequests (userid, groupid) VALUES (%s, %s)", (userid, groupid))
+  conn.commit()
+  
+def remove_all_join_requests(userid):
+  ''' Removes all group join requests that a user has made
+  Parameters:
+    - userid (integer), user whose requests should be removed
+  Notes:
+    For use when a users request is approved, we should delete all others
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM grouprequests WHERE userid = %s", (userid,))
+  conn.commit()
+  
+def remove_join_request(userid, groupid):
+  ''' Removes a single join request for a group from a user
+  Parameters:
+    - userid (integer), userid of who made the request
+    - groupid (integer), groupid of specific request
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM grouprequests WHERE userid = %s AND groupid = %s", (userid, groupid))
+  conn.commit()
+  
+def get_join_requests(userid):
+  ''' Gets all join requests for group that the user is an owner of
+  Parameters:
+    - userid (integer)
+  Returns:
+    - [tuples(userid, first_name, last_name)], details of user attempting to join
+    - [], if there are no requests
+  '''
+  curs = conn.cursor()
+  curs.execute("""SELECT grouprequests.userid, users.firstName, users.lastName
+               FROM groups
+               JOIN grouprequests
+               ON groups.groupid = grouprequests.groupid
+               JOIN users
+               ON users.userid = grouprequests.userid
+               WHERE groups.ownerid = %s
+               """, (userid,))
+  ret_list = []
+  for rec in curs:
+    ret_list.append(rec)
   return ret_list
   
