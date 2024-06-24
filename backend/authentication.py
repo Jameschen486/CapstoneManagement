@@ -8,9 +8,9 @@ class HTTPError(Exception):
         self.status_code = status_code
         self.message = message
 
-def login(username, password) :
+def login(email, password) :
     user_login = None
-    user = dbAcc.get_user_by_email(username)
+    user = dbAcc.get_user_by_email(email)
     hashpass = getHashOf(password)
 
     if getHashOf(password) == user['password']:
@@ -24,14 +24,14 @@ def login(username, password) :
 
     else:
         raise HTTPError(400, 'Invalid email or password, please try again')
-def userRegister(username, password, firstName, lastName, role):
+def userRegister(email, password, firstName, lastName, role):
 
-    user = dbAcc.get_user_by_email(username)
-    if user['username'] == username:
+    user = dbAcc.get_user_by_email(email)
+    if user['username'] == email:
         raise HTTPError(400, 'User already exists, please try login or reset password')
     else:
         hashedPassword = getHashOf(password)
-        dbAcc.create_user(username, hashedPassword, firstName, lastName, role)
+        dbAcc.create_user(email, hashedPassword, firstName, lastName, role)
     return
 
 
