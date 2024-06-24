@@ -22,26 +22,24 @@ class HTTPError(Exception):
         self.message = message
 
 def login(email, password) :
+    user_login = None
     user = dbAcc.get_user_by_email(email)
-    if user is None:
-        raise HTTPError(400, 'Invalid email or password, please try again')
-    
-    if getHashOf(password) == user[4]:
-        payload = {
-            'userid': user[0],
-            'role': user[5]
-        }
-        token = jwt_encode(payload)
+    hashpass = getHashOf(password)
+
+    if getHashOf(password) == user['password']:
+        user_login = user
+        token = str(random.randint(0, 500000))
+        user['tokens'].append(token)
         return {
             'userid': user[0],
             'token': token
         }
     else:
         raise HTTPError(400, 'Invalid email or password, please try again')
-    
-def register(email, password, firstName, lastName, role=0):
-    if dbAcc.get_user_by_email(email) is not None:
+def userRegister(email, password, firstName, lastName, role):
 
+    user = dbAcc.get_user_by_email(email)
+    if user['username'] == email:
         raise HTTPError(400, 'User already exists, please try login or reset password')
     else:
         hashedPassword = getHashOf(password)
