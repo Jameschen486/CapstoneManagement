@@ -16,24 +16,11 @@ services:
   backend:
     build: ./backend
     ports:
-      - 5000:5000
+      - 5100:5100
     volumes:
       - ./backend:/app/backend
     environment:
       - PYTHONPATH=${PYTHONPATH}:/app/backend
-    depends_on:
-      - postgres
-    networks:
-      - testnet
-  wrapper:
-    image: wrapper
-    ports:
-      - 5100:5100
-    build: .
-    volumes:
-      - .:/app
-    environment:
-      - PYTHONPATH=${PYTHONPATH}:/app
     depends_on:
       - postgres
     networks:

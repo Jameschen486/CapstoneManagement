@@ -1,8 +1,8 @@
 
 from typing import Union
-from backend.error import InputError, AccessError
+from error import InputError, AccessError
 from werkzeug.datastructures import ImmutableMultiDict
-from backend import dbAcc
+import dbAcc
 
 class Project:
     pass

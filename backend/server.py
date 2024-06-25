@@ -3,6 +3,7 @@ from flask_cors import CORS
 # from flask_mysqldb import MySQL
 
 from authentication import login, register
+from projects import Project
 
 app = Flask(__name__)
 # CORS(app)
@@ -55,4 +56,4 @@ def delete_project_route():
     return jsonify(response), status_code
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=5100)
