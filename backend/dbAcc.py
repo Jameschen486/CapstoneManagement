@@ -33,7 +33,7 @@ def update_password(userid, password):
     - userid (integer), id of user to change
     - password (string), new password
   '''
-  curs = conn.curs()
+  curs = conn.cursor()
   curs.execute("UPDATE users SET password = %s WHERE userid = %s", (password, userid))
   conn.commit()
 
@@ -43,8 +43,8 @@ def update_role(userid, role):
     - userid, id of user to issue change
     - role (integer), new role
   '''
-  curs = conn.curs()
-  curs.execute("UPDATE users SET role = %s WHERE userid = %s", role, userid)
+  curs = conn.cursor()
+  curs.execute("UPDATE users SET role = %s WHERE userid = %s", (role, userid))
   conn.commit()
   
 # Retrieval
