@@ -1,4 +1,5 @@
 import psycopg2
+from collections import namedtuple
 
 # TODO: swap to using connection pool
 try: 
@@ -6,6 +7,13 @@ try:
 except: 
   print("Unable to connect to database.")
   exit()
+  
+#setup namedtuples
+User_d_full = namedtuple("User_d_full", ["userid", "email", "first_name", "last_name", "password", "role", "groupid"])
+User_d_base = namedtuple("User_d_base", ["userid", "first_name", "last_name"])
+Group_d_full = namedtuple("Group_d_full", ["groupid", "ownerid", "group_name"])
+Group_d_base = namedtuple("Group_d_base", ["groupid", "group_name", "member_count"])
+
 
 #--------------------------------
 #   Users
@@ -60,7 +68,10 @@ def get_user_by_id(userid):
   '''
   curs = conn.cursor()
   curs.execute("SELECT * FROM users WHERE userid = %s", (userid,))
-  return curs.fetchone()
+  deets = curs.fetchone()
+  if deets == None:
+    return None
+  return User_d_full(deets[0], deets[1], deets[2], deets[3], deets[4], deets[5], deets[6])
   
 def get_user_by_email(email):
   ''' Queries the database for user information
@@ -72,7 +83,10 @@ def get_user_by_email(email):
   '''
   curs = conn.cursor()
   curs.execute("SELECT * FROM users WHERE email = %s", (email,))
-  return curs.fetchone()  
+  deets = curs.fetchone()
+  if deets == None:
+    return None
+  return User_d_full(deets[0], deets[1], deets[2], deets[3], deets[4], deets[5], deets[6])
 
 #--------------------------------
 #   Groups
@@ -122,7 +136,7 @@ def remove_user_from_group(userid):
 def get_all_groups():
   ''' Queries databse for details on every group
   Returns:
-    - [(groupid, groupname, member_count)] 
+    - [tuple] (groupid, groupname, member_count) 
   '''
   curs = conn.cursor()
   curs.execute("""SELECT groups.groupid, groups.groupname, COUNT(users.userid) 
@@ -140,12 +154,12 @@ def get_group_by_id(groupid):
   Parameters:
     - groupid (integer)
   returns:
-    - tuple (groupid, ownerid, group name)
+    - tuple (groupid, ownerid, group_name)
   '''
   curs = conn.cursor()
   curs.execute("SELECT * FROM groups WHERE groupid=%s", (groupid,))
-  q_ret = curs.fetchone()
-  return (q_ret[0], q_ret[1], q_ret[2])
+  deets = curs.fetchone()
+  return Group_d_full(deets[0], deets[1], deets[2])
 
 def get_groupcount_by_name(groupname):
   ''' Queries the databse for the number of groups with a given name
@@ -163,14 +177,14 @@ def get_group_members(groupid):
   Parameters:
     - groupid (integer)
   returns:
-    - [tuple] (userid, first name, last name) 
-    - None if group does not exist
+    - [tuple] (userid, first_name, last_name) 
+    - [] if group does not exist
   '''
   curs = conn.cursor()
-  curs.execute("SELECT * FROM users WHERE groupid = %s", (groupid,))
+  curs.execute("SELECT userid, firstname, lastname FROM users WHERE groupid = %s", (groupid,))
   ret_list = []
   for rec in curs:
-    ret_list.append((rec[0], rec[2], rec[3]))
+    ret_list.append(User_d_base(rec[0], rec[1], rec[2]))
   return ret_list
 
 #----------------------------------
@@ -227,6 +241,6 @@ def get_join_requests(userid):
                """, (userid,))
   ret_list = []
   for rec in curs:
-    ret_list.append(rec)
+    ret_list.append(User_d_base(rec[0], rec[1], rec[2]))
   return ret_list
   
