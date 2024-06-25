@@ -14,24 +14,24 @@ def clear_grouprequests():
   curs = dbAcc.conn.cursor()
   curs.execute("TRUNCATE grouprequests CASCADE")
   dbAcc.conn.commit()
-  
+ 
+own_d = [0, "group@owner.com", "group", "owner", "password", 1]
+use_d = [0, "Email@provider.com", "me", "them", "password", 1]
 def test_user_create_retrieve():
-  user_deets = ("Email@provider.com", "password", "me", "them", 1)
-  id = dbAcc.create_user(user_deets[0], user_deets[1], user_deets[2], user_deets[3], user_deets[4])
-  given = dbAcc.get_user_by_id(id)
+  own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], own_d[3], own_d[5])
+  given = dbAcc.get_user_by_id(own_d[0])
   #(id, email, firstname, lastname, password, role, groupid)
-  expected = (id, user_deets[0],  user_deets[2], user_deets[3], user_deets[1], user_deets[4], None)
-  assert given == expected
-  given2 = dbAcc.get_user_by_id(200)
-  assert given2 == None
+  assert given == tuple(own_d + [None])
+  given = dbAcc.get_user_by_id(200)
+  assert given == None
   clear_users()
-  assert dbAcc.get_user_by_id(id) == None
+  assert dbAcc.get_user_by_id(own_d[0]) == None
 
 def test_user_retrieve_email():
   user_deets = ("Email1@provider.com", "password", "me", "them", 1)
   id = dbAcc.create_user(user_deets[0], user_deets[1], user_deets[2], user_deets[3], user_deets[4])
   given = dbAcc.get_user_by_email(user_deets[0])
-  expected = expected = (id, user_deets[0],  user_deets[2], user_deets[3], user_deets[1], user_deets[4], None)
+  expected = (id, user_deets[0],  user_deets[2], user_deets[3], user_deets[1], user_deets[4], None)
   assert expected == given
   given2 = dbAcc.get_user_by_email("fake@notreal.com")
   assert given2 == None
@@ -52,9 +52,7 @@ def test_user_update_details():
   assert new_d[5]
   clear_users()
 
-    
-own_d = [0, "group@owner.com", "group", "owner", "password", 1]
-use_d = [0, "Email@provider.com", "me", "them", "password", 1]
+
 groupid = 0
 def test_group_setup():
   own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], 
