@@ -1,6 +1,6 @@
 import psycopg2
-from backend.error import InputError, AccessError
-from backend.dbAcc import create_group, get_all_groups, get_groupcount_by_name, get_user_by_id, get_group_members, create_join_request, add_user_to_group, remove_all_join_requests, remove_join_request, get_group_by_id, get_join_requests
+from error import InputError, AccessError
+from dbAcc import create_group, get_all_groups, get_groupcount_by_name, get_user_by_id, get_group_members, create_join_request, add_user_to_group, remove_all_join_requests, remove_join_request, get_group_by_id, get_join_requests, remove_user_from_group
 
 def create_group(group_name, creator_id):
 
@@ -11,7 +11,7 @@ def create_group(group_name, creator_id):
     no_groups = get_groupcount_by_name(group_name)
     
     # Error Case 2: A group with same name already registered.
-    if get_groupcount_by_name(group_name) > 0:
+    if no_groups > 0:
         raise InputError(description="Group with the same name already exists")
     
     group_id = create_group(group_name, creator_id)
@@ -35,8 +35,9 @@ def join_group(group_id, student_id, group_capacity):
     create_join_request(student_id, group_id)
     return {"message": "Join request sent successfully!"}, 201
 
-def handle_join_request(creator_id, applicant_id, group_id, accept, group_capacity):
-    if not is_user_creator(creator_id, group_id):
+def handle_join_request(user_id, applicant_id, group_id, accept, group_capacity):
+    c_id = get_group_by_id(group_id)[1]
+    if not user_id != c_id:
         raise AccessError(description="You do not have access to accept/reject join requests")
     
     if accept:
@@ -54,11 +55,15 @@ def handle_join_request(creator_id, applicant_id, group_id, accept, group_capaci
 
 def view_group_details(group_id):
     group_details = get_group_by_id(group_id)
+    group_members = get_group_members(group_id)
     
     if not group_details:
         raise InputError(description="Group not found")
 
-    return group_details, 200
+    return {
+        "group_details": group_details,
+        "group_members": group_members
+    }, 200
 
 def view_join_requests(user_id):
     join_requests = get_join_requests(user_id)
@@ -67,3 +72,10 @@ def view_join_requests(user_id):
         return {"message": "No join requests"}, 200
     
     return {"join_requests": join_requests}, 200
+
+def leave_group(user_id):
+    if get_user_by_id(user_id)[6] == None:
+        raise AccessError(description="User is not a member of any group")
+    
+    remove_user_from_group(user_id)
+    return {"message": "User has left the group"}, 200
