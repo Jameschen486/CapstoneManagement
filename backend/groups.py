@@ -1,6 +1,6 @@
 import psycopg2
-from backend.error import InputError, AccessError
-from backend.dbAcc import create_group, get_all_groups, get_groupcount_by_name, get_user_by_id, get_group_members, create_join_request, add_user_to_group, remove_all_join_requests, remove_join_request, get_group_by_id, get_join_requests
+from error import InputError, AccessError
+from dbAcc import create_group, get_all_groups, get_groupcount_by_name, get_user_by_id, get_group_members, create_join_request, add_user_to_group, remove_all_join_requests, remove_join_request, get_group_by_id, get_join_requests
 
 def create_group(group_name, creator_id):
 
