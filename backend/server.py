@@ -47,7 +47,7 @@ def update_project_route():
     response, status_code = Project.update(data)
     return jsonify(response), status_code
 
-@app.route('/project/update', methods=['DELETE'])
+@app.route('/project/delete', methods=['DELETE'])
 def delete_project_route():
     data = request.form
     user_id = data['user_id']
