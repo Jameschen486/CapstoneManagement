@@ -3,3 +3,4 @@ WORKDIR /app/backend
 COPY . /app/backend
 RUN pip install --no-cache-dir -r requirements.txt
 CMD ["pytest", "-r", "/tests"]
+CMD ["python3", "-m", "flask_wrapper"]
