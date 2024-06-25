@@ -32,5 +32,8 @@ def join_group(group_id, student_id, group_capacity):
         raise AccessError(description="Group is full")
     
     # Send a join request
-    create_join_request(student_id, group_id)
-    return {"message": "Join request sent successfully!"}, 201
+    # create_join_request(student_id, group_id)
+    # return {"message": "Join request sent successfully!"}, 201
+
+def handle_join_request(creator_id, applicant_id, group_id):
+    return True
