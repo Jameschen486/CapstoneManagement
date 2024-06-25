@@ -78,11 +78,13 @@ def test_add_get_remove_users():
   members = dbAcc.get_group_members(groupid)
   assert (use_d[0], use_d[2], use_d[3]) in members
   assert (own_d[0], own_d[2], own_d[3]) in members
+  
   dbAcc.remove_user_from_group(own_d[0])
   members = dbAcc.get_group_members(groupid)
   assert (own_d[0], own_d[2], own_d[3]) not in members
+
   given = dbAcc.get_all_groups()
-  assert (groupid, "testgroup", 2) in given
+  assert (groupid, "testgroup", 1) in given
   newgroupid = dbAcc.create_group(own_d[0], "newgroup")
   given = dbAcc.get_all_groups()
   assert (groupid, "testgroup", 1) in given
