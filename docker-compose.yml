@@ -16,7 +16,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - 5000:5000
+      - 5001:5000
     volumes:
       - ./backend:/app/backend
     environment:
@@ -25,5 +25,17 @@ services:
       - postgres
     networks:
       - testnet
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    ports:
+      - 3000:3000
+    depends_on:
+      - backend
+    networks:
+      - testnet
+
 networks:
   testnet:
