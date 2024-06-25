@@ -14,6 +14,8 @@ app = Flask(__name__)
 # app.config['MYSQL_DATABASE_PORT'] = '5002'
 # mysql.init_app(app)
 
+MAX_STUDENT_PER_GROUP = 6
+
 
 @app.route('/')
 def home():
@@ -35,7 +37,7 @@ def auth_register():
 
 @app.route('/group/create', methods=['POST'])
 def create_group_endpoint():
-    data = request.form()
+    data = request.form
     group_name = data.get('name')
     group_description = data.get('description')
     creator_id = data.get('creator_id')
@@ -49,7 +51,7 @@ def view_groups_route():
 
 @app.route('/group/join', methods=['POST'])
 def join_group_route():
-    data = request.form()
+    data = request.form
     group_id = data.get('group_id')
     student_id = data.get('student_id')
     response, status_code = groups.join_group(group_id, student_id, MAX_STUDENT_PER_GROUP)
@@ -77,5 +79,12 @@ def view_join_requests_route():
     response, status_code = groups.view_join_requests(user_id)
     return jsonify(response), status_code
 
+@app.route('/group/leave', methods=['POST'])
+def leave_group_route():
+    data = request.form
+    user_id = data.get('user_id')
+    response, status_code = groups.leave_group(user_id)
+    return jsonify(response), status_code
+
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=5097)
