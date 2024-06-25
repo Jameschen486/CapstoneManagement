@@ -1,4 +1,5 @@
 
+from typing import Union
 from backend.error import InputError, AccessError
 from werkzeug.datastructures import ImmutableMultiDict
 from backend import dbAcc
@@ -11,8 +12,8 @@ class Project:
                  project_id:int, 
                  name:str,
                  owner_id:int,   
-                 channel_id:int|None = None,    
-                 group_id:int|None = None,       
+                 channel_id:Union[int, None] = None,    
+                 group_id:Union[int, None] = None,       
                  spec:str = None, 
                  description:str = None, 
                  requirement:str = None, 
@@ -60,8 +61,8 @@ class Project:
         vars(dummy_project).pop("project_id")
 
         #project_id = dbAcc.create_project(*vars(dummy_project).values())
-        print("calling dbAcc.create_project() with arguements: ", end="")
-        print(*vars(dummy_project).values(), sep=',')
+        #print("calling dbAcc.create_project() with arguements: ", end="")
+        #print(*vars(dummy_project).values(), sep=',')
         project_id = 0
         #
 
@@ -76,11 +77,11 @@ class Project:
         project_info = [0, "name", 1, 2, 3, "spec", "description", 
              "requirement", "required_knowledge", "outcome", "additional"]
         #
-
-        return Project(*project_info)
+        project = Project(*project_info) if (project_info != None) else None
+        return project
     
 
-    def load_all() -> dict[int, Project]:
+    def load_all() -> dict:
         '''
         Load all projects from database
         '''
@@ -131,17 +132,26 @@ class Project:
         )
 
         #dbAcc.update_project(*vars(new_project).values())
-        print("calling dbAcc.update_project() with arguements: ", end="")
-        print(*vars(new_project).values(), sep=',')
+        #print("calling dbAcc.update_project() with arguements: ", end="")
+        #print(*vars(new_project).values(), sep=',')
         #
 
         return {"message": "Project updated.", "project_id": project_id}, 201
 
 
+    def delete(user_id:int, project_id:int):
+        project = Project.load(project_id)
+        if (project == None):
+            raise InputError(description=f"Project with id {project_id} does not exist")
+        if (project.owner_id != user_id):
+            # Tutor might be allowed to update other projects
+            raise AccessError(description=f"Project with id {project_id} is not your project")
+        
+        dbAcc.delete_project_by_id(project_id)
+        print("calling dbAcc.create_project() with arguements: ", end="")
+        print(project_id)
 
-
-
-
+        return {"message": "Project deleted.", "project_id": project_id}, 201
 
 
 

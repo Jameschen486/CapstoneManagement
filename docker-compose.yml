@@ -23,5 +23,18 @@ services:
       - postgres
     networks:
       - testnet
+  wrapper:
+    image: wrapper
+    ports:
+      - 5100:5100
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=${PYTHONPATH}:/app
+    depends_on:
+      - postgres
+    networks:
+      - testnet
 networks:
   testnet:

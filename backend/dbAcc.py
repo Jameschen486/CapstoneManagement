@@ -174,3 +174,15 @@ def update_project(project_id, owner_id, channel_id, group_id, spec, description
   '''
   pass
   
+
+def delete_project_by_id(project_id):
+  ''' Queries the database for project information
+  Parameters:
+    - projectid (integer)
+
+  Notes:
+    Does no checking
+  '''
+  pass
+
+
