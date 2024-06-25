@@ -36,7 +36,21 @@ def test_user_retrieve_email():
   given2 = dbAcc.get_user_by_email("fake@notreal.com")
   assert given2 == None
   clear_users()
-
+  
+def test_user_update_details():
+  #tests: update_password, update_role
+  use_d = [0, "Email1@provider.com", "me", "them", "password", 1]
+  use_d[0] = dbAcc.create_user(use_d[1], use_d[4], use_d[2], use_d[3], use_d[5])
+  
+  new_password = "newpass"
+  dbAcc.update_password(use_d[0], new_password)
+  new_d = dbAcc.get_user_by_id(use_d[0])
+  assert new_d[4] == new_password
+  
+  dbAcc.update_role(use_d[0], 2)
+  new_d = dbAcc.get_user_by_id(use_d[0])
+  assert new_d[5]
+  clear_users()
 
     
 own_d = [0, "group@owner.com", "group", "owner", "password", 1]
@@ -55,15 +69,18 @@ def test_group_create_retrieve():
   group_d = dbAcc.get_group_by_id(groupid)
   assert group_d == (groupid, own_d[0], groupname)
   own_deets = dbAcc.get_user_by_id(own_d[0])
-  assert own_deets[5] == groupid
+  assert own_deets[6] == groupid
   count = dbAcc.get_groupcount_by_name(groupname)
   assert count == 1
 
-def test_add_get_users():
+def test_add_get_remove_users():
   dbAcc.add_user_to_group(use_d[0], groupid)
   members = dbAcc.get_group_members(groupid)
   assert (use_d[0], use_d[2], use_d[3]) in members
   assert (own_d[0], own_d[2], own_d[3]) in members
+  dbAcc.remove_user_from_group(own_d[0])
+  members = dbAcc.get_group_members(groupid)
+  assert (own_d[0], own_d[2], own_d[3]) not in members
   given = dbAcc.get_all_groups()
   assert (groupid, "testgroup", 2) in given
   newgroupid = dbAcc.create_group(own_d[0], "newgroup")
