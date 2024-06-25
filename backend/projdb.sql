@@ -28,12 +28,16 @@ CREATE TABLE projects (
 
 CREATE TABLE groups(
   groupid       serial PRIMARY KEY,
-  groupowner    integer REFERENCES users(userid),
+  ownerid       integer REFERENCES users(userid),
   groupname     varchar,
   assign        integer REFERENCES projects(projectid),
   channel       integer REFERENCES channels(channelid)
 );
 
+CREATE TABLE grouprequests(
+  userid        integer REFERENCES users(userid),
+  groupid       integer REFERENCES groups(groupid)
+);
 
 CREATE TABLE preferences (
   userid        integer REFERENCES users(userid),
