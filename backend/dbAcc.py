@@ -133,7 +133,7 @@ def create_project(name, owner_id, channel_id, group_id, spec, description,
     - integer, the project id
   '''
   curs = conn.cursor()
-  curs.execute("INSERT INTO projects (projectname) VALUES (%s) RETURNING projectid", (name,))
+  curs.execute("INSERT INTO projects (ownerid, channel, groupno, spec, description, req, reqKnowledge, outcomes, additional) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING projectid", (owner_id, channel_id, group_id, spec, description, requirement, required_knowledge, outcome, additional))
   #curs.execute("INSERT INTO projects (projectname, ownerid, channel, groupno, spec, description, req, reqKnowledge, outcomes, additional) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING projectid", (name, owner_id, channel_id, group_id, spec, description, requirement, required_knowledge, outcome, additional))
   return curs.fetchone()[0]
 

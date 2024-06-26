@@ -36,7 +36,7 @@ def auth_register():
 @app.route('/project/create', methods=['POST'])
 def create_project_route():
     data = request.form
-    creator_id = data['user_id']
+    creator_id = int(data['user_id'])
     name = data.get('name')
     response, status_code = Project.create(name, creator_id)
     return jsonify(response), status_code
@@ -50,8 +50,8 @@ def update_project_route():
 @app.route('/project/delete', methods=['DELETE'])
 def delete_project_route():
     data = request.form
-    user_id = data['user_id']
-    project_id = data.get('project_id')
+    user_id = int(data['user_id'])
+    project_id = data.get('project_id', type=int)
     response, status_code = Project.delete(user_id, project_id)
     return jsonify(response), status_code
 

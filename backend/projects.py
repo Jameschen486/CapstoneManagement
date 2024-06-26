@@ -77,6 +77,7 @@ class Project:
         #     "requirement", "required_knowledge", "outcome", "additional"]
         #
         project = Project(*project_info) if (project_info != None) else None
+        raise InputError(description=f"{project_info} ... {project}")
         return project
     
 
@@ -110,7 +111,7 @@ class Project:
         # Check 2: premission of updating the project
         if user_id != old_project.owner_id:
             # Tutor might be allowed to update other projects
-            raise AccessError(description=f"Project with id {project_id} is not your project")
+            raise AccessError(description=f"Project with id {project_id} is not your project. {user_id, old_project.owner_id}")
         # Check 3: no duplicate name
         if name != None and Project.name_exist(name):
             # Also, new name can't be identical to the original name
