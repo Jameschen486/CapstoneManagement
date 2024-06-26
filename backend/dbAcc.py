@@ -243,4 +243,74 @@ def get_join_requests(userid):
   for rec in curs:
     ret_list.append(User_d_base(rec[0], rec[1], rec[2]))
   return ret_list
+
+
+
+
+
+
+#--------------------------------
+#   Project
+# Manipulation
+def create_project(owner_id, channel_id, group_id, spec, description, 
+                   requirement, required_knowledge, outcome, additional):
+  ''' Creates a project in the databse
+  Parameters:
+
+  Returns:
+    - integer, the project id
+  '''
+  pass
+
+
+
+def get_project_by_id(project_id):
+  ''' Queries the database for project information
+  Parameters:
+    - projectid (integer)
+  Returns:
+    - tuple (project_id, owner_id, channel_id, group_id, spec, description, 
+             requirement, required_knowledge, outcome, additional)
+    - None, if user does not exist
+  Notes:
+    Does no checking, ensure you do not create two users with the same email address
+  '''
+  pass
+
+
+def get_all_projects():
+  ''' Queries the database for project information
+  Parameters:
+    - projectid (integer)
+  Returns:
+    - tuple (project_id, owner_id, channel_id, group_id, spec, description, 
+             requirement, required_knowledge, outcome, additional)
+    - None, if user does not exist
+  Notes:
+    Does no checking, ensure you do not create two users with the same email address
+  '''
+  pass
+
+
+
+def update_project(project_id, owner_id, channel_id, group_id, spec, description, 
+                   requirement, required_knowledge, outcome, additional):
+  ''' updates the project in the databse 
+  Parameters:
+
+
+  '''
+  pass
   
+
+def delete_project_by_id(project_id):
+  ''' Queries the database for project information
+  Parameters:
+    - projectid (integer)
+
+  Notes:
+    Does no checking
+  '''
+  pass
+
+
