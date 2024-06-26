@@ -29,7 +29,14 @@ const Dashboard = () => {
       case '0':
         return (
           <div className="dashboard-section">
-            <h2>Student Dashboard</h2>
+            <div className='dashboard-header-row'>
+                <h2>Student Dashboard</h2>
+                <div className="dashboard-icons">
+                    <div className="dashboard-icon notification-icon" title="Notifications">&#128276;</div>
+                    <div className="dashboard-icon message-icon" title="Messages">&#128488;</div>
+                    <div className="dashboard-icon profile-icon" title="Profile">&#128100;</div>
+                </div>
+            </div>
             <p>Here you can manage your projects, view messages, and notifications.</p>
           </div>
         );
@@ -37,14 +44,14 @@ const Dashboard = () => {
         return (
           <div className="dashboard-section">
             <h2>Client Dashboard</h2>
-            <p>Here you can manage your projects, view messages, and notifications.</p>
+            <p>Here you can manage your projects, view messages, student preferences, and notifications.</p>
           </div>
         );
       case '2':
         return (
           <div className="dashboard-section">
             <h2>Tutor Dashboard</h2>
-            <p>Here you can manage your classes, view messages, and notifications.</p>
+            <p>Here you can manage your students, view messages, and notifications.</p>
           </div>
         );
       case '3':

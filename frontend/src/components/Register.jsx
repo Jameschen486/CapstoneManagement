@@ -61,10 +61,15 @@ const Register = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate('/');
+  };
+
   return (
     <div className="register-container">
       <header className="register-header">
         <h1>Registration page</h1>
+        <button onClick={handleBack} className="back-button">Back to Home</button>
       </header>
       <div className="register-content">
         {message && <p className="message">{message}</p>}
@@ -147,7 +152,7 @@ const Register = () => {
               <option value="5">Other</option>
             </select>
           </div>
-          <button type="submit">Create New Account</button>
+          <button type="submit" className='create-account-button'>Create New Account</button>
         </form>
       </div>
     </div>

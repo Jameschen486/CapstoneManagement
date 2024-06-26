@@ -51,7 +51,7 @@
     border-radius: 4px;
   }
   
-  button {
+  .create-account-button {
     padding: 10px 20px;
     font-size: 16px;
     background-color: #4CAF50;
@@ -61,7 +61,22 @@
     border-radius: 4px;
   }
   
-  button:hover {
+  .create-account-button:hover {
     background-color: #45a049;
+  }
+
+  .back-button {
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+  }
+  
+  .back-button:hover {
+    background-color: #0056b3;
   }
   
