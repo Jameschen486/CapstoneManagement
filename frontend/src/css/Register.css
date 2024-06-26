@@ -1,0 +1,82 @@
+.register-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .register-header {
+    background-color: #f8f8f8;
+    width: 100%;
+    padding: 20px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .register-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    margin: 50px auto;
+  }
+  
+  .register-form {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
+  }
+  
+  .register-form h2 {
+    margin-bottom: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 10px;
+    font-size: 16px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .create-account-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .create-account-button:hover {
+    background-color: #45a049;
+  }
+
+  .back-button {
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+  }
+  
+  .back-button:hover {
+    background-color: #0056b3;
+  }
+  

@@ -17,15 +17,35 @@ services:
   backend:
     build: ./backend
     ports:
-      - 5000:5000
+      - 5001:5001
     volumes:
       - ./backend:/app/backend
     environment:
-      - PYTHONPATH=${PYTHONPATH}:/app/backend
+      - FLASK_APP=server.py
+      - FLASK_ENV=development
+      - FLASK_RUN_HOST=0.0.0.0
+      - FLASK_RUN_PORT=5001
     depends_on:
       - postgres
     networks:
       - testnet
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+    networks:
+      - testnet
+
 networks:
   testnet:
 volumes:
