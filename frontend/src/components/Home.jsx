@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import jwt_decode from 'jwt-decode';
 import '../css/Home.css';
 
 const Home = () => {
@@ -23,6 +24,15 @@ const Home = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Login successful:', data);
+        // Store the token in localStorage
+        localStorage.setItem('token', data.token);
+
+        // Decode the token to get the role
+        const decodedToken = jwt_decode(data.token);
+        const userRole = decodedToken.role;
+        console.log('Decoded role:', userRole);
+        localStorage.setItem('role', userRole);
+
         navigate('/dashboard');
       } else {
         const errorData = await response.json();
