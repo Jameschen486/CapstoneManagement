@@ -14,6 +14,7 @@ CREATE TABLE users (
 
 CREATE TABLE projects (
   projectid     serial PRIMARY KEY,
+  projectname   varchar,
   ownerid       integer REFERENCES users(userid),
   channel       integer REFERENCES channels(channelid),
   groupno       varchar,

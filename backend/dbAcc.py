@@ -124,7 +124,7 @@ def get_group_members(groupid):
 #--------------------------------
 #   Project
 # Manipulation
-def create_project(owner_id, channel_id, group_id, spec, description, 
+def create_project(name, owner_id, channel_id, group_id, spec, description, 
                    requirement, required_knowledge, outcome, additional):
   ''' Creates a project in the databse
   Parameters:
@@ -132,7 +132,10 @@ def create_project(owner_id, channel_id, group_id, spec, description,
   Returns:
     - integer, the project id
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("INSERT INTO projects (projectname) VALUES (%s) RETURNING projectid", (name,))
+  #curs.execute("INSERT INTO projects (projectname, ownerid, channel, groupno, spec, description, req, reqKnowledge, outcomes, additional) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING projectid", (name, owner_id, channel_id, group_id, spec, description, requirement, required_knowledge, outcome, additional))
+  return curs.fetchone()[0]
 
 
 
@@ -147,7 +150,9 @@ def get_project_by_id(project_id):
   Notes:
     Does no checking, ensure you do not create two users with the same email address
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM projects WHERE projectid = %s", (project_id,))
+  return curs.fetchone()
 
 
 def get_all_projects():
@@ -161,8 +166,9 @@ def get_all_projects():
   Notes:
     Does no checking, ensure you do not create two users with the same email address
   '''
-  pass
-
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM projects")
+  return curs.fetchall()
 
 
 def update_project(project_id, owner_id, channel_id, group_id, spec, description, 
@@ -172,7 +178,9 @@ def update_project(project_id, owner_id, channel_id, group_id, spec, description
 
 
   '''
-  pass
+  curs = conn.cursor()
+  #this only update group_id
+  curs.execute("UPDATE project SET groupid = %s WHERE projectid = %s", (group_id, project_id))
   
 
 def delete_project_by_id(project_id):

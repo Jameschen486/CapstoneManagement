@@ -60,11 +60,10 @@ class Project:
         dummy_project = Project(None, name, owner_id)
         vars(dummy_project).pop("project_id")
 
-        #project_id = dbAcc.create_project(*vars(dummy_project).values())
+        project_id = dbAcc.create_project(*vars(dummy_project).values())
         #print("calling dbAcc.create_project() with arguements: ", end="")
         #print(*vars(dummy_project).values(), sep=',')
-        project_id = 0
-        #
+
 
         return {"message": "Project created.", "project_id": project_id}, 201
        
@@ -73,9 +72,9 @@ class Project:
         '''
         Load a project from database
         '''
-        #project_info = dbAcc.get_project_by_id(project_id)
-        project_info = [0, "name", 1, 2, 3, "spec", "description", 
-             "requirement", "required_knowledge", "outcome", "additional"]
+        project_info = dbAcc.get_project_by_id(project_id)
+        #project_info = [0, "name", 1, 2, 3, "spec", "description", 
+        #     "requirement", "required_knowledge", "outcome", "additional"]
         #
         project = Project(*project_info) if (project_info != None) else None
         return project
@@ -85,9 +84,8 @@ class Project:
         '''
         Load all projects from database
         '''
-        #projects_info = dbAcc.get_all_projects()
-        projects_info = []
-        projects = dict[int, Project]()
+        projects_info = dbAcc.get_all_projects()
+        projects = dict()
         for project_info in projects_info:
             project = Project(*project_info)
             projects[project.project_id] = project
@@ -131,7 +129,7 @@ class Project:
             additional=data.get('additional', default=old_project.additional), 
         )
 
-        #dbAcc.update_project(*vars(new_project).values())
+        dbAcc.update_project(*vars(new_project).values())
         #print("calling dbAcc.update_project() with arguements: ", end="")
         #print(*vars(new_project).values(), sep=',')
         #
@@ -148,8 +146,8 @@ class Project:
             raise AccessError(description=f"Project with id {project_id} is not your project")
         
         dbAcc.delete_project_by_id(project_id)
-        print("calling dbAcc.create_project() with arguements: ", end="")
-        print(project_id)
+        #print("calling dbAcc.create_project() with arguements: ", end="")
+        #print(project_id)
 
         return {"message": "Project deleted.", "project_id": project_id}, 201
 
