@@ -114,6 +114,7 @@ def add_user_to_group(to_add, group_id):
   '''
   curs = conn.cursor()
   curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, to_add))
+  conn.commit()
   
 def remove_user_from_group(userid):
   ''' Removes a user from the group they may be in
