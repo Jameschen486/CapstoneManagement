@@ -16,14 +16,17 @@ CREATE TABLE projects (
   projectid     serial PRIMARY KEY,
   projectname   varchar,
   ownerid       integer REFERENCES users(userid),
-  channel       integer REFERENCES channels(channelid),
-  groupno       varchar,
-  spec          text,
-  description   text,
-  req           text,
+  title         text,
+  clients       text,
+  specials      text,
+  groupcount    text,
+  background    text,
+  reqs          text,
   reqKnowledge  text,
   outcomes      text,
-  additional    text
+  supervision   text,
+  additional    text,
+  channel       integer REFERENCES channels(channelid)
 );
 
 
@@ -31,7 +34,7 @@ CREATE TABLE groups(
   groupid       serial PRIMARY KEY,
   ownerid       integer REFERENCES users(userid),
   groupname     varchar,
-  assign        integer REFERENCES projects(projectid),
+  assign        integer REFERENCES projects(projectid) ON DELETE SET NULL,
   channel       integer REFERENCES channels(channelid)
 );
 
