@@ -13,7 +13,9 @@ User_d_full = namedtuple("User_d_full", ["userid", "email", "first_name", "last_
 User_d_base = namedtuple("User_d_base", ["userid", "first_name", "last_name"])
 Group_d_full = namedtuple("Group_d_full", ["groupid", "ownerid", "group_name"])
 Group_d_base = namedtuple("Group_d_base", ["groupid", "group_name", "member_count"])
-
+Proj_d_full = namedtuple("Proj_d_full", ["project_id", "owner_id", "title", "clients", "specializations", 
+                                         "groupcount", "background", "requirements", "req_knowledge", 
+                                         "outcomes", "supervision", "additional"])
 
 #--------------------------------
 #   Users
@@ -243,4 +245,115 @@ def get_join_requests(userid):
   for rec in curs:
     ret_list.append(User_d_base(rec[0], rec[1], rec[2]))
   return ret_list
+
+#--------------------------------
+#   Project
+# Manipulation
+def create_project(ownerid, title, clients, specializations, 
+                   groupcount, background, requirements, 
+                   req_knowledge, outcomes, supervision, additional):
+  ''' Creates a project in the databse
+  Parameters:
+    - ownerid (integer), id of user creating the project
+    - title (string), title of project
+    - clients (string), clients of project
+    - specializations (string)
+    - groupcount (string), number of groups that can be assigned to project 
+    - background (string)
+    - requirements (string)
+    - req_knowledge (string)
+    - outcomes (string)
+    - supervision (string)
+    - additional (string)
+  Returns:
+    - integer, the project id
+  '''
+  curs = conn.cursor()
+  curs.execute("""INSERT INTO projects 
+               (ownerid, title, clients, specials, groupcount, background, reqs, reqKnowledge, outcomes, supervision, additional)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+               RETURNING projectid""", 
+               (ownerid, title, clients, specializations, 
+                groupcount, background, requirements, 
+                req_knowledge, outcomes, supervision, additional))
+  conn.commit()
+  return curs.fetchone()[0]
+
+def get_project_by_id(projectid):
+  ''' Queries the database for project information
+  Parameters:
+    - projectid (integer)
+  Returns:
+    - tuple (project_id, owner_id, title, clients, specializations, 
+             groupcount, background, requirements, req_knowledge, 
+             outcomes, supervision, additional)
+    - None, if project does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM projects WHERE projectid = %s", (projectid,))
+  ret = curs.fetchone()
+  if ret == None:
+    return None
+  return Proj_d_full(ret[0], ret[1], ret[2], ret[3], ret[4], ret[5], ret[6], ret[7], ret[8], ret[9], ret[10], ret[11])
+
+def get_all_projects():
+  ''' Queries the database for all existing projects
+  Returns:
+    - [tuple] (project_id, owner_id, title, clients, specializations, 
+             groupcount, background, requirements, req_knowledge, 
+             outcomes, supervision, additional)
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM projects")
+  ret_list = []
+  for rec in curs:
+    ret_list.append(Proj_d_full(rec[0], rec[1], rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], rec[10], rec[11]))
+  return ret_list
   
+
+def update_project(projectid, ownerid, title, clients, specializations, 
+                   groupcount, background, requirements, 
+                   req_knowledge, outcomes, supervision, additional):
+  ''' Updates project fields in the database for the given id
+  Parameters:
+  - projectid (integer), id of project to change
+  - ownerid (integer), new id
+  - title (string), title of project
+  - clients (string), clients of project
+  - specializations (string)
+  - groupcount (string), number of groups that can be assigned to project 
+  - background (string)
+  - requirements (string)
+  - req_knowledge (string)
+  - outcomes (string)
+  - supervision (string)
+  - additional (string)
+  '''
+  curs = conn.cursor()
+  curs.execute("""UPDATE projects SET 
+               ownerid = %s, 
+               title = %s, 
+               clients = %s, 
+               specials = %s, 
+               groupcount = %s, 
+               background = %s, 
+               reqs = %s, 
+               reqKnowledge = %s, 
+               outcomes = %s, 
+               supervision = %s, 
+               additional = %s
+               WHERE projectid = %s""", 
+               (ownerid, title, clients, specializations, 
+                groupcount, background, requirements, 
+                req_knowledge, outcomes, supervision, additional, projectid))
+  conn.commit()
+  
+def delete_project_by_id(projectid):
+  ''' Deletes a project given its id
+  Parameters:
+    - projectid (integer), id of project to delete
+  '''
+  curs = conn.cursor()
+  #preferences and groups have foreign keys to projects, remember this
+  curs.execute("DELETE FROM projects WHERE projectid = %s", (projectid,))
+  conn.commit()
