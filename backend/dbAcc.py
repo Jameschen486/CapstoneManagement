@@ -1,5 +1,6 @@
 import psycopg2
 from collections import namedtuple
+from collections import namedtuple
 
 # TODO: swap to using connection pool
 try: 
@@ -35,8 +36,28 @@ def create_user(email, password, first_name, last_name, role):
   curs.execute("INSERT INTO users (email, password, firstname, lastname, role) VALUES (%s, %s, %s, %s, %s) RETURNING userid", 
                (email, password, first_name, last_name, role))
   conn.commit()
+  conn.commit()
   return curs.fetchone()[0]
 
+def update_password(userid, password):
+  ''' Updates a users password with given value
+  Parameters:
+    - userid (integer), id of user to change
+    - password (string), new password
+  '''
+  curs = conn.cursor()
+  curs.execute("UPDATE users SET password = %s WHERE userid = %s", (password, userid))
+  conn.commit()
+
+def update_role(userid, role):
+  ''' Modifies the role of a user
+  Parameters:
+    - userid, id of user to issue change
+    - role (integer), new role
+  '''
+  curs = conn.cursor()
+  curs.execute("UPDATE users SET role = %s WHERE userid = %s", (role, userid))
+  conn.commit()
 def update_password(userid, password):
   ''' Updates a users password with given value
   Parameters:
@@ -74,6 +95,10 @@ def get_user_by_id(userid):
   if deets == None:
     return None
   return User_d_full(deets[0], deets[1], deets[2], deets[3], deets[4], deets[5], deets[6])
+  deets = curs.fetchone()
+  if deets == None:
+    return None
+  return User_d_full(deets[0], deets[1], deets[2], deets[3], deets[4], deets[5], deets[6])
   
 def get_user_by_email(email):
   ''' Queries the database for user information
@@ -85,6 +110,10 @@ def get_user_by_email(email):
   '''
   curs = conn.cursor()
   curs.execute("SELECT * FROM users WHERE email = %s", (email,))
+  deets = curs.fetchone()
+  if deets == None:
+    return None
+  return User_d_full(deets[0], deets[1], deets[2], deets[3], deets[4], deets[5], deets[6])
   deets = curs.fetchone()
   if deets == None:
     return None
@@ -104,6 +133,8 @@ def create_group(ownerid, group_name):
   curs = conn.cursor()
   curs.execute("INSERT INTO groups (ownerid, groupname) VALUES (%s, %s) RETURNING groupid", (ownerid, group_name))
   conn.commit()
+  curs.execute("INSERT INTO groups (ownerid, groupname) VALUES (%s, %s) RETURNING groupid", (ownerid, group_name))
+  conn.commit()
   new_group_id = curs.fetchone()[0]
   add_user_to_group(ownerid, new_group_id)
   return new_group_id
@@ -116,6 +147,23 @@ def add_user_to_group(to_add, group_id):
   '''
   curs = conn.cursor()
   curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, to_add))
+  
+def remove_user_from_group(userid):
+  ''' Removes a user from the group they may be in
+  Parameters:
+    - userid (integer) 
+  '''
+  curs = conn.cursor()
+  # Should we check and reassign owner if we need to?
+  # curs.execute("""SELECT groups.groupid 
+  #              FROM users
+  #              JOIN groups
+  #              ON groups.ownerid = %s""", (userid))
+  # owned_group = curs.fetchone()
+  # if owned_group != None:
+  #   get_group_members(owned_group)
+  curs.execute("UPDATE users SET groupid = NULL WHERE userid = %s", (userid,))
+  conn.commit()
   
 def remove_user_from_group(userid):
   ''' Removes a user from the group they may be in
@@ -151,15 +199,45 @@ def get_all_groups():
     ret_list.append(rec)
   return ret_list
 
+def get_all_groups():
+  ''' Queries databse for details on every group
+  Returns:
+    - [tuple] (groupid, groupname, member_count) 
+  '''
+  curs = conn.cursor()
+  curs.execute("""SELECT groups.groupid, groups.groupname, COUNT(users.userid) 
+               FROM groups 
+               JOIN users 
+               ON users.groupid = groups.groupid
+               GROUP BY groups.groupid""")
+  ret_list = []
+  for rec in curs:
+    ret_list.append(rec)
+  return ret_list
+
 def get_group_by_id(groupid):
   ''' Queries the database for information on a particular group
   Parameters:
     - groupid (integer)
   returns:
     - tuple (groupid, ownerid, group_name)
+    - tuple (groupid, ownerid, group_name)
   '''
   curs = conn.cursor()
   curs.execute("SELECT * FROM groups WHERE groupid=%s", (groupid,))
+  deets = curs.fetchone()
+  return Group_d_full(deets[0], deets[1], deets[2])
+
+def get_groupcount_by_name(groupname):
+  ''' Queries the databse for the number of groups with a given name
+  Parameters:
+   - groupname (string)
+  Returns:
+    - int, number of groups sharing the given name
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT count(*) FROM groups WHERE groupname = %s", (groupname,))
+  return curs.fetchone()[0]
   deets = curs.fetchone()
   return Group_d_full(deets[0], deets[1], deets[2])
 

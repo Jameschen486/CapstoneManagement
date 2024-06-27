@@ -1,14 +1,58 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { Link } from 'react-router-dom';
+=======
+import { Link, useNavigate } from 'react-router-dom';
+import jwt_decode from 'jwt-decode';
+>>>>>>> origin/main
 import '../css/Home.css';
 
 const Home = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+<<<<<<< HEAD
 
   const handleLogin = (e) => {
     e.preventDefault();
     alert(`Logged in with email: ${email}`);
+=======
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+
+    try {
+      const response = await fetch('http://localhost:5001/login', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Login successful:', data);
+        // Store the token in localStorage
+        localStorage.setItem('token', data.token);
+
+        // Decode the token to get the role
+        const decodedToken = jwt_decode(data.token);
+        const userRole = decodedToken.role;
+        console.log('Decoded role:', userRole);
+        localStorage.setItem('role', userRole);
+
+        navigate('/dashboard');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Invalid login credentials');
+      }
+    } catch (error) {
+      console.error('Error logging in:', error);
+      alert('An error occurred during login. Please try again.');
+    }
+>>>>>>> origin/main
   };
 
   return (
@@ -23,8 +67,25 @@ const Home = () => {
         </div>
         <div className="login-form">
           <form onSubmit={handleLogin}>
+<<<<<<< HEAD
             <input type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} required />
             <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+=======
+            <input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+>>>>>>> origin/main
             <button type="submit">Log In</button>
             <Link to="/forgot-password">Forgotten password?</Link>
           </form>
