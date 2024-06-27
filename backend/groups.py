@@ -42,7 +42,7 @@ def join_group(group_id, student_id, group_capacity):
 
 def handle_join_request(user_id, applicant_id, group_id, accept, group_capacity):
     c_id = get_group_by_id(group_id)[1]
-    if not user_id != c_id:
+    if user_id != c_id:
         raise AccessError(description="You do not have access to accept/reject join requests")
     
     if accept == 1:
@@ -66,7 +66,9 @@ def view_group_details(group_id):
         raise InputError(description="Group not found")
 
     return {
-        "group_details": group_details,
+        "groupid": group_details[0],
+        "ownerid": group_details[1],
+        "groupname": group_details[2],
         "group_members": group_members
     }, 200
 
