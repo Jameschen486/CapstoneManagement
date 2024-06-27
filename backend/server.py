@@ -117,7 +117,7 @@ def create_project_route():
     data = request.form
     owner_id = int(data['owner_id'])
     title = data['title']
-    response, status_code = Project.create(title, owner_id)
+    response, status_code = projects.create(title, owner_id)
     return jsonify(response), status_code
 
 @app.route('/project/details', methods=['GET'])
