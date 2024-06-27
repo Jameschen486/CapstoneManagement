@@ -23,7 +23,7 @@ def auth_role(token, role):
     token = str(token).split()
     token = token[1]
     payload = jwt_decode(token)
-    if payload['userid'] != id:
+    if payload['role'] != role:
         raise HTTPError("Insufficent Privelage", 400)
     return payload
 
@@ -33,7 +33,7 @@ def auth_id(token, id):
     token = token[1]
     payload = jwt_decode(token)
     if payload['userid'] != id:
-        raise HTTPError("Insufficent Privelage", 400)
+        raise HTTPError(f"{payload['userid']} != {id} {type(payload['userid'])} != {type(id)} Insufficent Privelage", 400)
     return payload
 
 

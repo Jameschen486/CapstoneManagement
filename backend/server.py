@@ -45,7 +45,7 @@ def auth_register():
 @app.route('/group/create', methods=['POST'])
 def create_group_endpoint():
     group_name = request.form['groupname']
-    user_id = request.form['ownerid']
+    user_id = int(request.form['ownerid'])
     token = request.authorization
     if auth_id(token, user_id):
         response, status_code = groups.create_group(group_name, user_id)
@@ -60,8 +60,8 @@ def view_groups_route():
 @app.route('/group/join', methods=['POST'])
 def join_group_route():
     data = request.form
-    group_id = data.get('groupid')
-    user_id = data.get('userid')
+    group_id = int(data.get('groupid'))
+    user_id = int(data.get('userid'))
     token = request.authorization
     if auth_id(token, user_id):
         response, status_code = groups.join_group(group_id, user_id, MAX_STUDENT_PER_GROUP)
@@ -81,7 +81,7 @@ def handle_join_request_route():
 
 @app.route('/group', methods=['GET'])
 def view_group_details_route():
-    group_id = request.args.get('groupid')
+    group_id = int(request.args.get('groupid'))
     token = request.authorization
     if auth_role(token, 0):
         response, status_code = groups.view_group_details(group_id)
@@ -89,16 +89,16 @@ def view_group_details_route():
 
 @app.route('/user/join_requests', methods=['GET'])
 def view_join_requests_route():
-    user_id = request.args.get('userid')
-    response, status_code = groups.view_join_requests(user_id)
+    user_id = int(request.args.get('userid'))
     token = request.authorization
     if auth_id(token, user_id):
+        response, status_code = groups.view_join_requests(user_id)
         return jsonify(response), status_code
 
 @app.route('/group/leave', methods=['POST'])
 def leave_group_route():
     data = request.form
-    user_id = data.get('userid')
+    user_id = int(data.get('userid'))
     token = request.authorization
     if auth_id(token, user_id): 
         response, status_code = groups.leave_group(user_id)
@@ -107,7 +107,7 @@ def leave_group_route():
 @app.get('/user')
 def get_user():
     token = request.authorization
-    user = request.args['id']
+    user = int(request.args['id'])
     if auth_role(token, 0):       
         return jsonify(return_user(user))
 
