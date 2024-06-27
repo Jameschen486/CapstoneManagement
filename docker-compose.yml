@@ -17,11 +17,7 @@ services:
   backend:
     build: ./backend
     ports:
-<<<<<<< HEAD
-      - 5100:5100
-=======
       - 5001:5001
->>>>>>> origin/main
     volumes:
       - ./backend:/app/backend
     environment:
