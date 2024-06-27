@@ -120,3 +120,23 @@ def test_join_requests():
   clear_users()
   clear_groups()
   clear_grouprequests()
+  
+own_d = [0, "group@owner.com", "group", "owner", "password", 1]
+def test_projects():
+  own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], own_d[3], own_d[5])
+  pd = [0, own_d[0], "a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+  pd[0] = dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11])
+  ret = dbAcc.get_all_projects()
+  pdt = tuple(pd)
+  assert pdt in ret
+  ret = dbAcc.get_project_by_id(pd[0])
+  assert ret == pdt
+  new_title = "new"
+  dbAcc.update_project(pd[0], own_d[0], new_title, pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11])
+  ret = dbAcc.get_project_by_id(pd[0])
+  assert ret.title == new_title
+  dbAcc.delete_project_by_id(pd[0])
+  ret = dbAcc.get_project_by_id(pd[0])
+  assert ret == None
+  ret = dbAcc.get_all_projects()
+  assert ret == []

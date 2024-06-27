@@ -6,8 +6,7 @@ class AccessError(HTTPException):
 
 class InputError(HTTPException):
     code = 400
-    message = 'No message specified'
-    
+    message = 'No message specified'   
 class HTTPError(Exception):
     status_code = 400
 

@@ -5,7 +5,6 @@ import dbAcc
 import jwt
 
 from error import HTTPError
-
 key = "rngwarriors"
 
 def jwt_encode(payload):
