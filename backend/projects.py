@@ -1,16 +1,9 @@
 
 from typing import Union
-from error import HTTPError
+from error import InputError, AccessError
 from werkzeug.datastructures import ImmutableMultiDict
 import dbAcc
 
-class InputError(HTTPError):
-    def __init__(self, description=None, status_code=400, payload=None):
-        super().__init__(description, status_code, payload)
-
-class AccessError(HTTPError):
-    def __init__(self, description=None, status_code=403, payload=None):
-        super().__init__(description, status_code, payload)
 
 
 class Project:
