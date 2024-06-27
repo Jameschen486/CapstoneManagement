@@ -3,10 +3,11 @@ from flask_cors import CORS
 # from flask_mysqldb import MySQL
 import groups
 
-from authentication import login, register
+from authentication import login, register, jwt_decode, return_user
+from error import HTTPError
 
 app = Flask(__name__)
-# CORS(app)
+CORS(app)
 # mysql = MySQL()
 
 # app.config['MYSQL_DATABASE_DB'] = 'projdb'
@@ -15,6 +16,24 @@ app = Flask(__name__)
 # mysql.init_app(app)
 
 MAX_STUDENT_PER_GROUP = 6
+
+# ERROR HANDLER
+@app.errorhandler(HTTPError)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+def authorization(token, requirement):
+    # Have to remove prefix from standard format
+    token = str(token).split()
+    token = token[1]
+    payload = jwt_decode(token)
+    if payload is None:
+        raise HTTPError("Invalid Signature", 401)
+    if payload['role'] < requirement:
+        raise HTTPError("Insufficent Privelage", 400)
+    return True
 
 
 @app.route('/')
@@ -82,6 +101,14 @@ def leave_group_route():
     user_id = data.get('userid')
     response, status_code = groups.leave_group(user_id)
     return jsonify(response), status_code
+    
+@app.get('/user')
+def get_user():
+    token = request.authorization
+    user = request.args['id']
+    if authorization(token, 0):       
+        return jsonify(return_user(user))
+
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5097)
+    app.run(debug=True, host='0.0.0.0', port=5001)
