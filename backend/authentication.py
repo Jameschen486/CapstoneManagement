@@ -15,8 +15,27 @@ def jwt_decode(token):
     try: 
         payload = jwt.decode(token, key, algorithms="HS256", options={"verify_signature": True})
     except:
-        return None
+        raise HTTPError("Invalid Signature", 401)
     return payload
+
+def auth_role(token, role):
+    # Have to remove prefix from standard format
+    token = str(token).split()
+    token = token[1]
+    payload = jwt_decode(token)
+    if payload['role'] != role:
+        raise HTTPError("Insufficent Privelage", 400)
+    return payload
+
+def auth_id(token, id):
+    # Have to remove prefix from standard format
+    token = str(token).split()
+    token = token[1]
+    payload = jwt_decode(token)
+    if payload['userid'] != id:
+        raise HTTPError(f"{payload['userid']} != {id} {type(payload['userid'])} != {type(id)} Insufficent Privelage", 400)
+    return payload
+
 
 def login(email, password) :
     user = dbAcc.get_user_by_email(email)

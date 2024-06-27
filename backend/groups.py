@@ -45,7 +45,7 @@ def handle_join_request(user_id, applicant_id, group_id, accept, group_capacity)
     if user_id != c_id:
         raise AccessError(description="You do not have access to accept/reject join requests")
     
-    if accept == 1:
+    if accept == True:
         if len(get_group_members(group_id)) >= group_capacity:
             raise AccessError(description="Group is full")
         
