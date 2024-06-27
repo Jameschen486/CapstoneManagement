@@ -45,7 +45,7 @@ def create_project_route():
 def get_project_details_route():
     data = request.form
     user_id = int(data['user_id'])
-    project_id = data.get('project_id')
+    project_id = data.get('project_id', default=None, type=int)
     response, status_code = Project.get_details(project_id, user_id)
     return jsonify(response), status_code
 
@@ -59,7 +59,7 @@ def update_project_route():
 def delete_project_route():
     data = request.form
     user_id = int(data['user_id'])
-    project_id = data.get('project_id', type=int)
+    project_id = data.get('project_id', default=None, type=int)
     response, status_code = Project.delete(user_id, project_id)
     return jsonify(response), status_code
     

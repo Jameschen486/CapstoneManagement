@@ -116,8 +116,8 @@ class Project:
         '''
        
         user_id = int(data['user_id'])
-        project_id = int(data['project_id'])
-        title = data.get('title')
+        project_id = data.get('project_id', default=None, type=int)
+        title = data.get('title', default=None)
         old_project = Project.load(project_id)
 
         # Check 1: existence of the project
