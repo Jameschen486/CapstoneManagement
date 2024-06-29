@@ -5,7 +5,7 @@ import groups
 
 from authentication import login, register, jwt_decode, return_user, auth_id, auth_role
 from error import HTTPError
-import projects
+from projects import Project
 
 app = Flask(__name__)
 CORS(app)
@@ -117,7 +117,7 @@ def create_project_route():
     data = request.form
     owner_id = int(data['owner_id'])
     title = data['title']
-    response, status_code = projects.create(title, owner_id)
+    response, status_code = Project.create(title, owner_id)
     return jsonify(response), status_code
 
 @app.route('/project/details', methods=['GET'])
@@ -125,13 +125,13 @@ def get_project_details_route():
     data = request.form
     user_id = int(data['user_id'])
     project_id = data.get('project_id', default=None, type=int)
-    response, status_code = projects.get_details(project_id, user_id)
+    response, status_code = Project.get_details(project_id, user_id)
     return jsonify(response), status_code
 
 @app.route('/project/update', methods=['PUT'])
 def update_project_route():
     data = request.form
-    response, status_code = projects.update(data)
+    response, status_code = Project.update(data)
     return jsonify(response), status_code
 
 @app.route('/project/delete', methods=['DELETE'])
@@ -139,7 +139,7 @@ def delete_project_route():
     data = request.form
     user_id = int(data['user_id'])
     project_id = data.get('project_id', default=None, type=int)
-    response, status_code = projects.delete(user_id, project_id)
+    response, status_code = Project.delete(user_id, project_id)
     return jsonify(response), status_code
 
 if __name__ == "__main__":
