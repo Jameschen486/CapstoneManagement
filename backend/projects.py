@@ -14,7 +14,7 @@ class Project:
                  title:str, 
                  clients:str = None,    
                  specializations:str = None,  
-                 group_count:Union[int, None] = None,
+                 group_count:int = 0,
                  background:str = None, 
                  requirements:str = None, 
                  req_knowledge:str = None, 
@@ -81,7 +81,7 @@ class Project:
             raise AccessError(description=f"Project with id {project_id} is not your project.")
 
         response = vars(project)
-        return response, 201
+        return response, 200
 
 
     def load(project_id:int) -> Project:
@@ -128,9 +128,12 @@ class Project:
             # Tutor might be allowed to update other projects
             raise AccessError(description=f"Project with id {project_id} is not your project.")
         # Check 3: no duplicate title
-        if title != None and Project.title_exist(title):
+        if Project.title_exist(title):
             # Also, new title can't be identical to the original title
             raise InputError(description=f"Project with title {title} exists")
+        
+        if title == None:
+            title = old_project.title
 
         new_project = Project(
             project_id,
@@ -153,7 +156,7 @@ class Project:
         new_project_info.pop('channel')
         dbAcc.update_project(*new_project_info.values())
 
-        return {"message": "Project updated.", "project_id": project_id}, 201
+        return {"message": "Project updated.", "project_id": project_id}, 200
 
 
     def delete(user_id:int, project_id:int):
@@ -168,7 +171,7 @@ class Project:
         #print("calling dbAcc.create_project() with arguements: ", end="")
         #print(project_id)
 
-        return {"message": "Project deleted.", "project_id": project_id}, 201
+        return {"message": "Project deleted.", "project_id": project_id}, 200
 
 
 
