@@ -139,4 +139,8 @@ def test_projects():
   ret = dbAcc.get_project_by_id(pd[0])
   assert ret == None
   ret = dbAcc.get_all_projects()
+<<<<<<< HEAD
   assert ret == []
+=======
+  assert ret == []
+>>>>>>> main

@@ -4,4 +4,8 @@ Include
 pyvenv.cfg
 data
 **/__pycache__/
+<<<<<<< HEAD
 backend/.pytest_cache
+=======
+backend/.pytest_cache
+>>>>>>> main
