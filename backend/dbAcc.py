@@ -1,4 +1,5 @@
 import psycopg2
+import typing
 from collections import namedtuple
 
 # TODO: swap to using connection pool
@@ -21,14 +22,16 @@ Skill_d = namedtuple("Skill_d", ["skill_id", "skill_name"])
 #--------------------------------
 #   Users
 # Manipulation
-def create_user(email, password, first_name, last_name, role):
+def create_user(email: str, password: str, first_name:str , last_name: str, role: int) -> int:
   ''' Creates a user in the databse
+  
   Parameters:
     - email (string)
     - password (string), hashed password
     - first_name
     - last_name
     - role (integer), user's intended role
+    
   Returns:
     - integer, the users id
   '''
@@ -38,8 +41,9 @@ def create_user(email, password, first_name, last_name, role):
   conn.commit()
   return curs.fetchone()[0]
 
-def update_password(userid, password):
+def update_password(userid: int, password: str):
   ''' Updates a users password with given value
+  
   Parameters:
     - userid (integer), id of user to change
     - password (string), new password
@@ -48,8 +52,9 @@ def update_password(userid, password):
   curs.execute("UPDATE users SET password = %s WHERE userid = %s", (password, userid))
   conn.commit()
 
-def update_role(userid, role):
+def update_role(userid: int, role: int):
   ''' Modifies the role of a user
+  
   Parameters:
     - userid, id of user to issue change
     - role (integer), new role
@@ -59,13 +64,16 @@ def update_role(userid, role):
   conn.commit()
   
 # Retrieval
-def get_user_by_id(userid):
+def get_user_by_id(userid: int) -> User_d_full:
   ''' Queries the database for user information
+  
   Parameters:
     - userid (integer)
+    
   Returns:
     - tuple (userid, email, first_name, last_name, password, role, groupid)
     - None, if user does not exist
+    
   Notes:
     Does no checking, ensure you do not create two users with the same email address
   '''
@@ -76,10 +84,12 @@ def get_user_by_id(userid):
     return None
   return User_d_full(deets[0], deets[1], deets[2], deets[3], deets[4], deets[5], deets[6])
   
-def get_user_by_email(email):
+def get_user_by_email(email: str) -> User_d_full:
   ''' Queries the database for user information
+  
   Parameters:
     - email (string)
+    
   Returns:
     - tuple (userid, email, first_name, last_name, password, role, groupid)
     - None, if user does not exist
@@ -94,11 +104,13 @@ def get_user_by_email(email):
 #--------------------------------
 #   Groups
 # Manipulation
-def create_group(ownerid, group_name):
+def create_group(ownerid: int, group_name: str) -> int:
   ''' Creates a new group, sets its owner, and adds its owner to the group
+  
   Parameters:
     - ownerid (integer), user id of owner/creator
     - group_name (string)
+    
   Returns:
     - groupid (integer)
   '''
@@ -109,8 +121,9 @@ def create_group(ownerid, group_name):
   add_user_to_group(ownerid, new_group_id)
   return new_group_id
   
-def add_user_to_group(userid, group_id):
+def add_user_to_group(userid: int, group_id: int):
   ''' Adds user to specified group
+  
   Parameters
     - userid (integer), user id of person to add
     - group_id (integer)
@@ -119,8 +132,9 @@ def add_user_to_group(userid, group_id):
   curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, userid))
   conn.commit()
   
-def remove_user_from_group(userid):
+def remove_user_from_group(userid: int):
   ''' Removes a user from the group they may be in
+  
   Parameters:
     - userid (integer) 
   '''
@@ -137,8 +151,9 @@ def remove_user_from_group(userid):
   conn.commit()
 
 # Retrieval
-def get_all_groups():
+def get_all_groups() -> typing.List[Group_d_base]:
   ''' Queries databse for details on every group
+  
   Returns:
     - [tuple] (groupid, groupname, member_count) 
   '''
@@ -153,22 +168,29 @@ def get_all_groups():
     ret_list.append(rec)
   return ret_list
 
-def get_group_by_id(groupid):
+def get_group_by_id(groupid: int) -> Group_d_full:
   ''' Queries the database for information on a particular group
+  
   Parameters:
     - groupid (integer)
-  returns:
+    
+  Returns:
     - tuple (groupid, ownerid, group_name)
+    - None, if groupid is invalid
   '''
   curs = conn.cursor()
   curs.execute("SELECT * FROM groups WHERE groupid=%s", (groupid,))
   deets = curs.fetchone()
+  if deets == None:
+      return None
   return Group_d_full(deets[0], deets[1], deets[2])
 
-def get_groupcount_by_name(groupname):
+def get_groupcount_by_name(groupname: str) -> int:
   ''' Queries the databse for the number of groups with a given name
+  
   Parameters:
    - groupname (string)
+   
   Returns:
     - int, number of groups sharing the given name
   '''
@@ -176,10 +198,12 @@ def get_groupcount_by_name(groupname):
   curs.execute("SELECT count(*) FROM groups WHERE groupname = %s", (groupname,))
   return curs.fetchone()[0]
   
-def get_group_members(groupid):
+def get_group_members(groupid: int) -> typing.List[User_d_base]:
   ''' Get details for all members of a given group
+  
   Parameters:
     - groupid (integer)
+    
   returns:
     - [tuple] (userid, first_name, last_name) 
     - [] if group does not exist
@@ -194,8 +218,9 @@ def get_group_members(groupid):
 #----------------------------------
 # Join requests
 # Manipulation
-def create_join_request(userid, groupid):
+def create_join_request(userid: int, groupid: int):
   ''' Creates a requests for userid to join groupid
+  
   Parameters:
     - userid (integer), user making the request
     - groupid (integer), group being requested to join
@@ -204,10 +229,12 @@ def create_join_request(userid, groupid):
   curs.execute("INSERT INTO grouprequests (userid, groupid) VALUES (%s, %s)", (userid, groupid))
   conn.commit()
   
-def remove_all_join_requests(userid):
+def remove_all_join_requests(userid: int):
   ''' Removes all group join requests that a user has made
+  
   Parameters:
     - userid (integer), user whose requests should be removed
+    
   Notes:
     For use when a users request is approved, we should delete all others
   '''
@@ -215,8 +242,9 @@ def remove_all_join_requests(userid):
   curs.execute("DELETE FROM grouprequests WHERE userid = %s", (userid,))
   conn.commit()
   
-def remove_join_request(userid, groupid):
+def remove_join_request(userid: int, groupid: int):
   ''' Removes a single join request for a group from a user
+  
   Parameters:
     - userid (integer), userid of who made the request
     - groupid (integer), groupid of specific request
@@ -226,10 +254,12 @@ def remove_join_request(userid, groupid):
   conn.commit()
   
 # Retrieval
-def get_join_requests(userid):
+def get_join_requests(userid: int) -> typing.List[User_d_base]:
   ''' Gets all join requests for group that the user is an owner of
+  
   Parameters:
     - userid (integer)
+    
   Returns:
     - [tuples(userid, first_name, last_name)], details of user attempting to join
     - [], if there are no requests
@@ -251,10 +281,11 @@ def get_join_requests(userid):
 #--------------------------------
 #   Project
 # Manipulation
-def create_project(ownerid, title, clients, specializations, 
-                   groupcount, background, requirements, 
-                   req_knowledge, outcomes, supervision, additional):
-  ''' Creates a project in the databse
+def create_project(ownerid: int, title: str, clients: str, specializations: str, 
+                   groupcount: str, background: str, requirements: str, 
+                   req_knowledge :str, outcomes: str, supervision: str, additional:str) -> int:
+  ''' Creates a project in the database
+  
   Parameters:
     - ownerid (integer), id of user creating the project
     - title (string), title of project
@@ -267,6 +298,7 @@ def create_project(ownerid, title, clients, specializations,
     - outcomes (string)
     - supervision (string)
     - additional (string)
+    
   Returns:
     - integer, the project id
   '''
@@ -281,10 +313,12 @@ def create_project(ownerid, title, clients, specializations,
   conn.commit()
   return curs.fetchone()[0]
 
-def get_project_by_id(projectid):
+def get_project_by_id(projectid: int) -> Proj_d_full:
   ''' Queries the database for project information
+  
   Parameters:
     - projectid (integer)
+    
   Returns:
     - tuple (project_id, owner_id, title, clients, specializations, 
              groupcount, background, requirements, req_knowledge, 
@@ -298,8 +332,9 @@ def get_project_by_id(projectid):
     return None
   return Proj_d_full(ret[0], ret[1], ret[2], ret[3], ret[4], ret[5], ret[6], ret[7], ret[8], ret[9], ret[10], ret[11])
 
-def get_all_projects():
+def get_all_projects() -> typing.List[Proj_d_full]:
   ''' Queries the database for all existing projects
+  
   Returns:
     - [tuple] (project_id, owner_id, title, clients, specializations, 
              groupcount, background, requirements, req_knowledge, 
@@ -313,10 +348,11 @@ def get_all_projects():
   return ret_list
   
 
-def update_project(projectid, ownerid, title, clients, specializations, 
-                   groupcount, background, requirements, 
-                   req_knowledge, outcomes, supervision, additional):
+def update_project(projectid: int, ownerid: int, title: str, clients: str, specializations:str, 
+                   groupcount: str, background: str, requirements: str, 
+                   req_knowledge: str, outcomes: str, supervision: str, additional: str):
   ''' Updates project fields in the database for the given id
+  
   Parameters:
   - projectid (integer), id of project to change
   - ownerid (integer), new id
@@ -350,8 +386,9 @@ def update_project(projectid, ownerid, title, clients, specializations,
                 req_knowledge, outcomes, supervision, additional, projectid))
   conn.commit()
   
-def delete_project_by_id(projectid):
+def delete_project_by_id(projectid: int):
   ''' Deletes a project given its id
+  
   Parameters:
     - projectid (integer), id of project to delete
   '''
@@ -363,10 +400,12 @@ def delete_project_by_id(projectid):
 #------------------------
 # Skills
 
-def create_skill(skillname):
-  ''' Creates a new skill in the databse
+def create_skill(skillname: str) -> int:
+  ''' Creates a new skill in the database
+  
   Parameters:
     skillname (string)
+    
   Returns:
     integer, id of newly created skill
   '''
@@ -375,8 +414,9 @@ def create_skill(skillname):
   conn.commit()
   return curs.fetchone()[0]
 
-def add_skill_to_user(skillid, userid):
+def add_skill_to_user(skillid: int, userid: int):
   ''' Adds the given skill to a users list of skills
+  
   Parameters:
     skillid (integer), skill to add
     userid (integer), user to add the skill to
@@ -385,8 +425,9 @@ def add_skill_to_user(skillid, userid):
   curs.execute("INSERT INTO userskills (userid, skillid) VALUES (%s, %s)", (userid, skillid))
   conn.commit()
   
-def remove_skill_from_user(skillid, userid):
+def remove_skill_from_user(skillid: int, userid: int):
   ''' Removes given skill from list of users skills
+  
   Parameters:
     skillid (integer)
     userid (integer)
@@ -395,8 +436,9 @@ def remove_skill_from_user(skillid, userid):
   curs.execute("DELETE FROM userskills WHERE userid = %s AND skillid = %s", (userid, skillid))
   conn.commit()
   
-def add_skill_to_project(skillid, projectid):
+def add_skill_to_project(skillid: int, projectid:int):
   ''' Adds a skill requirement to a project
+  
   Parameters:
     skillid (integer)
     projectid (integer)
@@ -405,8 +447,9 @@ def add_skill_to_project(skillid, projectid):
   curs.execute("INSERT INTO projectskills (projectid, skillid) VALUES (%s, %s)", (projectid, skillid))
   conn.commit()
   
-def remove_skill_from_project(skillid, projectid):
+def remove_skill_from_project(skillid: int, projectid: int):
   '''Removes skill requirement from a project
+  
   Parameters
     skillid (integer)
     projectid (integer)
@@ -417,8 +460,9 @@ def remove_skill_from_project(skillid, projectid):
   
 #---------------------------
 # Retrieval
-def get_all_skills():
+def get_all_skills() -> typing.List[Skill_d]:
   ''' Returns a list of all skills and their details
+  
   Returns:
     [tuple] (skill_id, skill_name)
   '''
@@ -429,8 +473,9 @@ def get_all_skills():
     ret.append(Skill_d(rec[0], rec[1]))
   return ret
 
-def get_user_skills(userid):
+def get_user_skills(userid: int) -> typing.List[int]:
   '''Returns a list of skills that a user has
+  
   Returns:
     [integer], skillids for all skills a user has
   '''
@@ -444,8 +489,9 @@ def get_user_skills(userid):
     ret.append(rec[0])
   return ret
 
-def get_project_skills(projectid):
+def get_project_skills(projectid:int) -> typing.List[Skill_d]:
   '''Returns a list of skills required for a project
+  
   Returns:
     [Tuple], (skill_id, skill_name)
   '''
@@ -459,10 +505,12 @@ def get_project_skills(projectid):
     ret.append(Skill_d(rec[0], rec[1]))
   return ret
 
-def get_group_skills(groupid):
+def get_group_skills(groupid: int) -> typing.List[int]:
   ''' Gets the combined skills of all memebers of a group
+  
   Parameters:
     groupid (integer)
+    
   Returns:
     [integer], skillids for all memebers of a group
   '''
