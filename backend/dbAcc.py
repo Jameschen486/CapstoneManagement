@@ -18,6 +18,7 @@ Proj_d_full = namedtuple("Proj_d_full", ["project_id", "owner_id", "title", "cli
                                          "groupcount", "background", "requirements", "req_knowledge", 
                                          "outcomes", "supervision", "additional"])
 Skill_d = namedtuple("Skill_d", ["skill_id", "skill_name"])
+Group_skill_d = namedtuple("Group_skill_d", ["skill_id", "skill_count"])
 
 #--------------------------------
 #   Users
@@ -505,21 +506,22 @@ def get_project_skills(projectid:int) -> typing.List[Skill_d]:
     ret.append(Skill_d(rec[0], rec[1]))
   return ret
 
-def get_group_skills(groupid: int) -> typing.List[int]:
+def get_group_skills(groupid: int) -> typing.List[Group_skill_d]:
   ''' Gets the combined skills of all memebers of a group
   
   Parameters:
     groupid (integer)
     
   Returns:
-    [integer], skillids for all memebers of a group
+    [Tuple], (skill_id, count), skill and number of members with the skill
   '''
   curs = conn.cursor()
-  curs.execute(""" SELECT skills.skillid FROM users
+  curs.execute(""" SELECT skills.skillid, COUNT(skills.skillid) FROM users
                JOIN userskills ON userskills.userid = users.userid
                JOIN skills ON skills.skillid = userskills.skillid
-               WHERE users.groupid = %s""", (groupid,))
+               WHERE users.groupid = %s
+               GROUP BY skills.skillid""", (groupid,))
   ret = []
   for rec in curs:
-    ret.append(rec[0])
+    ret.append(Group_skill_d(rec[0], rec[1]))
   return ret
