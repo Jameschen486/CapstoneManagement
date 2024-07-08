@@ -172,11 +172,12 @@ def test_skills():
   given = dbAcc.get_user_skills(use_d[0])
   assert skl_d2[0] in given
   
+  dbAcc.add_skill_to_user(skl_d2[0], own_d[0])
   grp_id = dbAcc.create_group(own_d[0], "testgroup")
   dbAcc.add_user_to_group(use_d[0], grp_id)
   given = dbAcc.get_group_skills(grp_id)
-  assert skl_d1[0] in given
-  assert skl_d2[0] in given
+  assert (skl_d1[0], 1) in given
+  assert (skl_d2[0], 2) in given
   
   dbAcc.remove_skill_from_user(skl_d1[0], own_d[0])
   given = dbAcc.get_user_skills(own_d[0])
