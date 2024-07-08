@@ -3,12 +3,8 @@ from flask_cors import CORS
 # from flask_mysqldb import MySQL
 import groups
 
-<<<<<<< HEAD
-from authentication import login, register
-=======
 from authentication import login, register, jwt_decode, return_user, auth_id, auth_role
 from error import HTTPError
->>>>>>> main
 from projects import Project
 
 app = Flask(__name__)
@@ -47,8 +43,6 @@ def auth_register():
     lastName = request.form['lastName']
     return jsonify(register(email, password, firstName, lastName))
 
-<<<<<<< HEAD
-=======
 @app.route('/group/create', methods=['POST'])
 def create_group_endpoint():
     group_name = request.form['groupname']
@@ -118,7 +112,6 @@ def get_user():
     if auth_role(token, 0):       
         return jsonify(return_user(user))
 
->>>>>>> main
 @app.route('/project/create', methods=['POST'])
 def create_project_route():
     data = request.form
@@ -150,8 +143,4 @@ def delete_project_route():
     return jsonify(response), status_code
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    app.run(debug=True, host='0.0.0.0')
-=======
     app.run(debug=True, host='0.0.0.0', port=5001)
->>>>>>> main
