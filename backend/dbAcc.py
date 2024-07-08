@@ -16,6 +16,7 @@ Group_d_base = namedtuple("Group_d_base", ["groupid", "group_name", "member_coun
 Proj_d_full = namedtuple("Proj_d_full", ["project_id", "owner_id", "title", "clients", "specializations", 
                                          "groupcount", "background", "requirements", "req_knowledge", 
                                          "outcomes", "supervision", "additional"])
+Skill_d = namedtuple("Skill_d", ["skill_id", "skill_name"])
 
 #--------------------------------
 #   Users
@@ -358,3 +359,102 @@ def delete_project_by_id(projectid):
   #preferences and groups have foreign keys to projects, remember this
   curs.execute("DELETE FROM projects WHERE projectid = %s", (projectid,))
   conn.commit()
+  
+#------------------------
+# Skills
+
+def create_skill(skillname):
+  ''' Creates a new skill in the databse
+  Parameters:
+    skillname (string)
+  Returns:
+    integer, id of newly created skill
+  '''
+  curs = conn.cursor()
+  curs.execute("INSERT INTO skills (skillname) VALUES (%s) RETURNING skillid", (skillname,))
+  conn.commit()
+  return curs.fetchone()[0]
+
+def add_skill_to_user(skillid, userid):
+  ''' Adds the given skill to a users list of skills
+  Parameters:
+    skillid (integer), skill to add
+    userid (integer), user to add the skill to
+  '''
+  curs = conn.cursor()
+  curs.execute("INSERT INTO userskills (userid, skillid) VALUES (%s, %s)", (userid, skillid))
+  conn.commit()
+  
+def remove_skill_from_user(skillid, userid):
+  ''' Removes given skill from list of users skills
+  Parameters:
+    skillid (integer)
+    userid (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM userskills WHERE userid = %s AND skillid = %s", (userid, skillid))
+  conn.commit()
+  
+def add_skill_to_project(skillid, projectid):
+  ''' Adds a skill requirement to a project
+  Parameters:
+    skillid (integer)
+    projectid (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("INSERT INTO projectskills (projectid, skillid) VALUES (%s, %s)", (projectid, skillid))
+  conn.commit()
+  
+def remove_skill_from_project(skillid, projectid):
+  '''Removes skill requirement from a project
+  Parameters
+    skillid (integer)
+    projectid (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM projectskills WHERE projectid = %s AND skillid = %s", (projectid, skillid))
+  conn.commit()
+  
+#---------------------------
+# Retrieval
+def get_all_skills():
+  ''' Returns a list of all skills and their details
+  Returns:
+    [tuple] (skill_id, skill_name)
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM skills")
+  ret = []
+  for rec in curs:
+    ret.append(Skill_d(rec[0], rec[1]))
+  return ret
+
+def get_user_skills(userid):
+  '''Returns a list of skills that a user has
+  Returns:
+    [integer], skillids for all skills a user has
+  '''
+  curs = conn.cursor()
+  curs.execute("""SELECT skills.skillid FROM users 
+               JOIN userskills ON userskills.userid = users.userid
+               JOIN skills ON skills.skillid = userskills.skillid
+               WHERE users.userid = %s""", (userid,))
+  ret = []
+  for rec in curs:
+    ret.append(rec[0])
+  return ret
+
+def get_project_skills(projectid):
+  '''Returns a list of skills required for a project
+  Returns:
+    [Tuple], (skill_id, skill_name)
+  '''
+  curs = conn.cursor()
+  curs.execute(""" SELECT skills.skillid, skills.skillname FROM projects
+               JOIN projectskills ON projectskills.projectid = projects.projectid
+               JOIN skills ON skills.skillid = projectskills.skillid
+               WHERE projects.projectid = %s""", (projectid,))
+  ret = []
+  for rec in curs:
+    ret.append(Skill_d(rec[0], rec[1]))
+  return ret
