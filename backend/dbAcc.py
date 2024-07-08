@@ -109,14 +109,14 @@ def create_group(ownerid, group_name):
   add_user_to_group(ownerid, new_group_id)
   return new_group_id
   
-def add_user_to_group(to_add, group_id):
+def add_user_to_group(userid, group_id):
   ''' Adds user to specified group
   Parameters
-    - to_add (integer), user id of person to add
+    - userid (integer), user id of person to add
     - group_id (integer)
   '''
   curs = conn.cursor()
-  curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, to_add))
+  curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, userid))
   conn.commit()
   
 def remove_user_from_group(userid):
@@ -457,4 +457,21 @@ def get_project_skills(projectid):
   ret = []
   for rec in curs:
     ret.append(Skill_d(rec[0], rec[1]))
+  return ret
+
+def get_group_skills(groupid):
+  ''' Gets the combined skills of all memebers of a group
+  Parameters:
+    groupid (integer)
+  Returns:
+    [integer], skillids for all memebers of a group
+  '''
+  curs = conn.cursor()
+  curs.execute(""" SELECT skills.skillid FROM users
+               JOIN userskills ON userskills.userid = users.userid
+               JOIN skills ON skills.skillid = userskills.skillid
+               WHERE users.groupid = %s""", (groupid,))
+  ret = []
+  for rec in curs:
+    ret.append(rec[0])
   return ret
