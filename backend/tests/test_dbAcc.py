@@ -14,6 +14,16 @@ def clear_grouprequests():
   curs = dbAcc.conn.cursor()
   curs.execute("TRUNCATE grouprequests CASCADE")
   dbAcc.conn.commit()
+  
+def clear_projects():
+  curs = dbAcc.conn.cursor()
+  curs.execute("TRUNCATE projects RESTART IDENTITY CASCADE")
+  dbAcc.conn.commit()
+  
+def clear_skills():
+  curs = dbAcc.conn.cursor()
+  curs.execute("TRUNCATE skills RESTART IDENTITY CASCADE")
+  dbAcc.conn.commit()
  
 own_d = [0, "group@owner.com", "group", "owner", "password", 1]
 use_d = [0, "Email@provider.com", "me", "them", "password", 1]
@@ -140,3 +150,45 @@ def test_projects():
   assert ret == None
   ret = dbAcc.get_all_projects()
   assert ret == []
+  clear_users()
+  clear_groups()
+  clear_grouprequests()
+  
+def test_skills():
+  skl_d1 = [0, "python"]
+  skl_d2 = [0, "c++"]
+  skl_d1[0] = dbAcc.create_skill(skl_d1[1])
+  skl_d2[0] = dbAcc.create_skill(skl_d2[1])
+  given = dbAcc.get_all_skills()
+  assert tuple(skl_d1) in given
+  assert tuple(skl_d2) in given
+  
+  own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], own_d[3], own_d[5])
+  use_d[0] = dbAcc.create_user(use_d[1], use_d[4], use_d[2], use_d[3], use_d[5])
+  dbAcc.add_skill_to_user(skl_d1[0], own_d[0])
+  dbAcc.add_skill_to_user(skl_d2[0], use_d[0])
+  given = dbAcc.get_user_skills(own_d[0])
+  assert skl_d1[0]in given
+  given = dbAcc.get_user_skills(use_d[0])
+  assert skl_d2[0] in given
+  
+  dbAcc.add_skill_to_user(skl_d2[0], own_d[0])
+  grp_id = dbAcc.create_group(own_d[0], "testgroup")
+  dbAcc.add_user_to_group(use_d[0], grp_id)
+  given = dbAcc.get_group_skills(grp_id)
+  assert (skl_d1[0], 1) in given
+  assert (skl_d2[0], 2) in given
+  
+  dbAcc.remove_skill_from_user(skl_d1[0], own_d[0])
+  given = dbAcc.get_user_skills(own_d[0])
+  assert skl_d1[0] not in given
+  
+  proj_id = dbAcc.create_project("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "10")
+  dbAcc.add_skill_to_project(skl_d1[0], proj_id)
+  given = dbAcc.get_project_skills(proj_id)
+  assert given == [tuple(skl_d1)]
+  clear_users()
+  clear_projects()
+  clear_groups()
+  clear_skills()
+  
