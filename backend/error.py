@@ -7,6 +7,7 @@ class AccessError(HTTPException):
 class InputError(HTTPException):
     code = 400
     message = 'No message specified'   
+
 class HTTPError(Exception):
     status_code = 400
 
@@ -21,3 +22,7 @@ class HTTPError(Exception):
         rv = dict(self.payload or ())
         rv['message'] = self.message
         return rv
+    
+class RoleError(AccessError):
+    code = 403
+    message = 'Bad role'

@@ -2,7 +2,7 @@
 from typing import Union
 from error import InputError, AccessError
 from werkzeug.datastructures import ImmutableMultiDict
-import dbAcc
+import dbAcc, permission
 
 class Project:
     pass
@@ -43,7 +43,6 @@ class Project:
         self.channel = channel
 
 
-
     def title_is_valid(title:str) -> bool:
         return title is not None
 
@@ -54,10 +53,17 @@ class Project:
         return title in titles_list
         
 
-    def create(title:str, ownerid:int):
+    def create(userid:int, ownerid:int, title:str):
         '''
         create a project in database
         '''
+
+        if dbAcc.get_user_by_id(ownerid) is None:
+            raise InputError(description=f"Intended owner {ownerid} does not exist")
+
+        if not permission.project_create(userid, ownerid):
+            return
+
         if not Project.title_is_valid(title):
             raise InputError(description=f"Invalid project title: {title}")
         if Project.title_exist(title):
@@ -72,13 +78,13 @@ class Project:
         return {"message": "Project created.", "projectid": projectid}, 201
        
 
-    def get_details(projectid: int, userid: int):
+    def get_details(userid: int, projectid: int):
         project = Project.load(projectid)
         if (project is None):
             raise InputError(description=f"Project with id {projectid} does not exist")
-        if userid != project.ownerid:
-            # Tutor might be allowed to get details of other projects
-            raise AccessError(description=f"Project with id {projectid} is not your project.")
+    
+        if not permission.project_details(userid, projectid):
+            return
 
         response = vars(project)
         return response, 200
@@ -120,14 +126,13 @@ class Project:
         title = data.get('title', default=None)
         old_project = Project.load(projectid)
 
-        # Check 1: existence of the project
+
         if old_project is None:
             raise InputError(description=f"Project with id {projectid} does not exist")
-        # Check 2: premission of updating the project
-        if userid != old_project.ownerid:
-            # Tutor might be allowed to update other projects
-            raise AccessError(description=f"Project with id {projectid} is not your project.")
-        # Check 3: no duplicate title
+
+        if not permission.project_update(userid, projectid):
+            return
+        
         if Project.title_exist(title):
             # Also, new title can't be identical to the original title
             raise InputError(description=f"Project with title {title} exists")
@@ -137,7 +142,7 @@ class Project:
 
         new_project = Project(
             projectid,
-            userid,
+            data.get('ownerid', default=old_project.ownerid),
             title,
             clients=data.get('clients', default=old_project.clients),
             specializations=data.get('specializations', default=old_project.specializations),
@@ -161,11 +166,11 @@ class Project:
 
     def delete(userid:int, projectid:int):
         project = Project.load(projectid)
-        if (project == None):
+        if (project is None):
             raise InputError(description=f"Project with id {projectid} does not exist")
-        if (project.ownerid != userid):
-            # Tutor might be allowed to update other projects
-            raise AccessError(description=f"Project with id {projectid} is not your project")
+        
+        if not permission.project_delete(userid, projectid):
+            return
         
         dbAcc.delete_project_by_id(projectid)
 
