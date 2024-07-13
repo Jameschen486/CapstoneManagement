@@ -2,7 +2,7 @@
 from typing import Union
 from error import InputError, AccessError
 from werkzeug.datastructures import ImmutableMultiDict
-import dbAcc, premission
+import dbAcc, permission
 
 class Project:
     pass
@@ -61,7 +61,7 @@ class Project:
         if dbAcc.get_user_by_id(ownerid) is None:
             raise InputError(description=f"Intended owner {ownerid} does not exist")
 
-        if not premission.project_create(userid, ownerid):
+        if not permission.project_create(userid, ownerid):
             return
 
         if not Project.title_is_valid(title):
@@ -83,7 +83,7 @@ class Project:
         if (project is None):
             raise InputError(description=f"Project with id {projectid} does not exist")
     
-        if not premission.project_details(userid, projectid):
+        if not permission.project_details(userid, projectid):
             return
 
         response = vars(project)
@@ -130,7 +130,7 @@ class Project:
         if old_project is None:
             raise InputError(description=f"Project with id {projectid} does not exist")
 
-        if not premission.project_update(userid, projectid):
+        if not permission.project_update(userid, projectid):
             return
         
         if Project.title_exist(title):
@@ -169,7 +169,7 @@ class Project:
         if (project is None):
             raise InputError(description=f"Project with id {projectid} does not exist")
         
-        if not premission.project_delete(userid, projectid):
+        if not permission.project_delete(userid, projectid):
             return
         
         dbAcc.delete_project_by_id(projectid)

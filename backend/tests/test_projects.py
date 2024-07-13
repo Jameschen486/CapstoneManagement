@@ -1,5 +1,5 @@
 from tests import helper
-from premission import Role
+from permission import Role
 
 
 
@@ -121,7 +121,7 @@ def test_delete():
     assert response.status_code == 400
 
 
-def test_premission_create():
+def test_permission_create():
     helper.truncate()
     
     client_id0, client_token0 = helper.create_user(0, Role.CLIENT)
@@ -153,7 +153,7 @@ def test_premission_create():
                 assert response.status_code == 201
 
 
-def test_premission_2():
+def test_permission_2():
     helper.truncate()
     
     client_id0, client_token0 = helper.create_user(0, Role.CLIENT)

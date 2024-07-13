@@ -3,7 +3,7 @@ Some functions assumed the admin has information ADMIN
 """
 import dbAcc
 import server
-from premission import Role
+from permission import Role
 
 CLIENT = server.app.test_client()
 
