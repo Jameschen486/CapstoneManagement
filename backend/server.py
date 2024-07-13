@@ -116,10 +116,11 @@ def get_user():
 def create_project_route():
     token = request.authorization
     data = request.form
+    userid = int(data['userid'])
     ownerid = int(data['ownerid'])
     title = data['title']
-    if auth_id(token, ownerid): 
-        response, status_code = Project.create(title, ownerid)
+    if auth_id(token, userid): 
+        response, status_code = Project.create(userid, ownerid, title)
         return jsonify(response), status_code
 
 @app.route('/project/details', methods=['GET'])
@@ -129,7 +130,7 @@ def get_project_details_route():
     userid = int(data['userid'])
     projectid = data.get('projectid', default=None, type=int)
     if auth_id(token, userid): 
-        response, status_code = Project.get_details(projectid, userid)
+        response, status_code = Project.get_details(userid, projectid)
         return jsonify(response), status_code
 
 @app.route('/project/update', methods=['PUT'])
