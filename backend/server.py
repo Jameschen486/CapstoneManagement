@@ -114,33 +114,42 @@ def get_user():
 
 @app.route('/project/create', methods=['POST'])
 def create_project_route():
+    token = request.authorization
     data = request.form
-    owner_id = int(data['owner_id'])
+    ownerid = int(data['ownerid'])
     title = data['title']
-    response, status_code = Project.create(title, owner_id)
-    return jsonify(response), status_code
+    if auth_id(token, ownerid): 
+        response, status_code = Project.create(title, ownerid)
+        return jsonify(response), status_code
 
 @app.route('/project/details', methods=['GET'])
 def get_project_details_route():
+    token = request.authorization
     data = request.form
-    user_id = int(data['user_id'])
-    project_id = data.get('project_id', default=None, type=int)
-    response, status_code = Project.get_details(project_id, user_id)
-    return jsonify(response), status_code
+    userid = int(data['userid'])
+    projectid = data.get('projectid', default=None, type=int)
+    if auth_id(token, userid): 
+        response, status_code = Project.get_details(projectid, userid)
+        return jsonify(response), status_code
 
 @app.route('/project/update', methods=['PUT'])
 def update_project_route():
+    token = request.authorization
     data = request.form
-    response, status_code = Project.update(data)
-    return jsonify(response), status_code
+    userid = int(data['userid'])
+    if auth_id(token, userid): 
+        response, status_code = Project.update(data)
+        return jsonify(response), status_code
 
 @app.route('/project/delete', methods=['DELETE'])
 def delete_project_route():
+    token = request.authorization
     data = request.form
-    user_id = int(data['user_id'])
-    project_id = data.get('project_id', default=None, type=int)
-    response, status_code = Project.delete(user_id, project_id)
-    return jsonify(response), status_code
+    userid = int(data['userid'])
+    project_id = data.get('projectid', default=None, type=int)
+    if auth_id(token, userid): 
+        response, status_code = Project.delete(userid, project_id)
+        return jsonify(response), status_code
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5001)

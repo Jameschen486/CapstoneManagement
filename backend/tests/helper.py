@@ -15,7 +15,7 @@ USERS = [
 def truncate(table:str = None):
     curs = dbAcc.conn.cursor()
 
-    if table == None:
+    if table is None:
         for table in TABLES:
             curs.execute(f"TRUNCATE {table} RESTART IDENTITY CASCADE")
     else:
@@ -24,9 +24,17 @@ def truncate(table:str = None):
     dbAcc.conn.commit()
 
 
-def get_user(index:int = 0) -> int:
+def token2headers(token: str):
+    return {"Authorization": f"Bearer {token}"}
+
+
+def get_user(index:int = 0) -> tuple:
     user_info = USERS[index]
     CLIENT.post('/register', data = user_info)
-    user_id = CLIENT.post('/login', data = user_info).json["userid"]
+    response = CLIENT.post('/login', data = user_info)
+    
+    user_id = response.json["userid"]
+    token = response.json["token"]
 
-    return user_id
+    return user_id, token
+
