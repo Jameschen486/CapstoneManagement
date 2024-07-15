@@ -45,7 +45,7 @@ CREATE TABLE grouprequests(
 CREATE TABLE preferences (
   userid        integer REFERENCES users(userid),
   projectid     integer REFERENCES projects(projectid),
-  level         integer
+  rank          integer
 );
 
 CREATE TABLE skills (
@@ -61,6 +61,12 @@ CREATE TABLE userskills (
 CREATE TABLE projectskills (
   projectid     integer REFERENCES projects(projectid),
   skillid       integer REFERENCES skills(skillid)
+);
+
+CREATE TABLE resetcodes (
+  userid        integer REFERENCES users(userid) PRIMARY KEY,
+  code          varchar,
+  created       timestamp
 );
 
 CREATE TABLE notifications (
