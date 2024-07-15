@@ -1,6 +1,7 @@
 import psycopg2
 import typing
 from collections import namedtuple
+from datetime import datetime
 
 # TODO: swap to using connection pool
 try: 
@@ -19,6 +20,7 @@ Proj_d_full = namedtuple("Proj_d_full", ["project_id", "owner_id", "title", "cli
                                          "outcomes", "supervision", "additional"])
 Skill_d = namedtuple("Skill_d", ["skill_id", "skill_name"])
 Group_skill_d = namedtuple("Group_skill_d", ["skill_id", "skill_count"])
+Reset_code_d = namedtuple("Reset_code_d", ["userid", "code", "timestamp"])
 
 #--------------------------------
 #   Users
@@ -525,3 +527,50 @@ def get_group_skills(groupid: int) -> typing.List[Group_skill_d]:
   for rec in curs:
     ret.append(Group_skill_d(rec[0], rec[1]))
   return ret
+
+#-----------------------
+# Reset codes
+
+def create_reset_code(userid: int, code: str, timestamp: datetime):
+  ''' Creates a code for resetting a password in the database
+  
+  Parameters:
+    userid (integer)
+    code (string)
+    timestamp (datetime)
+    
+  Notes:
+    There should only ever be one code per user -- this function will handle that
+  '''
+  curs = conn.cursor()
+  curs.execute("""INSERT INTO resetcodes (userid, code, created) VALUES (%s, %s, %s)
+                  ON CONFLICT (userid) DO UPDATE
+                  SET code = %s, created = %s""", (userid, code, timestamp, code, timestamp))
+  conn.commit()
+  
+def get_reset_code(userid: int):
+  ''' Gets the reset code for a user
+  
+  Parameters:
+    userid (int)
+  
+  Returns:
+    tuple, (userid, code, timestamp)
+    None, if code does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("""SELECT * FROM resetcodes WHERE userid = %s""", (userid,))
+  rec = curs.fetchone()
+  if rec == None:
+      return None
+  return Reset_code_d(rec[0], rec[1], rec[2])
+
+def remove_reset_code(userid: int):
+  ''' Removes the reset code for the user
+  
+  Parameters:
+    userid (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM resetcodes WHERE userid = %s", (userid,))
+  conn.commit()
