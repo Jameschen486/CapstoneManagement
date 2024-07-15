@@ -1,4 +1,5 @@
 import dbAcc
+import datetime
 
 def clear_users():
   curs = dbAcc.conn.cursor()
@@ -23,6 +24,11 @@ def clear_projects():
 def clear_skills():
   curs = dbAcc.conn.cursor()
   curs.execute("TRUNCATE skills RESTART IDENTITY CASCADE")
+  dbAcc.conn.commit()
+  
+def clear_reset_codes():
+  curs = dbAcc.conn.cursor()
+  curs.execute("TRUNCATE resetcodes CASCADE")
   dbAcc.conn.commit()
  
 own_d = [0, "group@owner.com", "group", "owner", "password", 1]
@@ -192,3 +198,20 @@ def test_skills():
   clear_groups()
   clear_skills()
   
+def test_reset_codes():
+  use_d[0] = dbAcc.create_user(use_d[1], use_d[4], use_d[2], use_d[3], use_d[5])
+  code1 = [use_d[0], "resetcode", datetime.datetime.now()]
+  dbAcc.create_reset_code(code1[0], code1[1], code1[2])
+  given = dbAcc.get_reset_code(use_d[0])
+  assert given == tuple(code1)
+  
+  code2 = [use_d[0], "newcode", datetime.datetime.now()]
+  dbAcc.create_reset_code(code2[0], code2[1], code2[2])
+  given = dbAcc.get_reset_code(use_d[0])
+  assert given == tuple(code2)
+  
+  dbAcc.remove_reset_code(use_d[0])
+  given = dbAcc.get_reset_code(use_d[0])
+  assert given == None
+  clear_users()
+  clear_reset_codes()
