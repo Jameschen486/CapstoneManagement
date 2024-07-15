@@ -45,7 +45,7 @@ CREATE TABLE grouprequests(
 CREATE TABLE preferences (
   userid        integer REFERENCES users(userid),
   projectid     integer REFERENCES projects(projectid),
-  level         integer
+  rank          integer
 );
 
 CREATE TABLE skills (
