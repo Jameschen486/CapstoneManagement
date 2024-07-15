@@ -63,6 +63,12 @@ CREATE TABLE projectskills (
   skillid       integer REFERENCES skills(skillid)
 );
 
+CREATE TABLE resetcodes (
+  userid        integer REFERENCES users(userid) PRIMARY KEY,
+  code          varchar,
+  created       timestamp
+);
+
 CREATE TABLE notifications (
   notifid       serial PRIMARY KEY,
   userid        integer REFERENCES users(userid),
