@@ -81,14 +81,3 @@ def test_leave_group():
     assert response.status_code == 200
     data = response.get_json()
     assert data["message"] == "User has left the group"
-
-
-print("1")
-test_create_group()
-test_view_groups()
-test_join_group()
-test_handle_join_request()
-test_view_group_details()
-test_view_join_requests()
-test_leave_group()
-print("OK")
