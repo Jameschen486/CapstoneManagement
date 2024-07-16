@@ -1,4 +1,5 @@
 import dbAcc
+import datetime
 
 def clear_users():
   curs = dbAcc.conn.cursor()
@@ -23,6 +24,16 @@ def clear_projects():
 def clear_skills():
   curs = dbAcc.conn.cursor()
   curs.execute("TRUNCATE skills RESTART IDENTITY CASCADE")
+  dbAcc.conn.commit()
+  
+def clear_reset_codes():
+  curs = dbAcc.conn.cursor()
+  curs.execute("TRUNCATE resetcodes CASCADE")
+  dbAcc.conn.commit()
+  
+def clear_preferences():
+  curs = dbAcc.conn.cursor()
+  curs.execute("TRUNCATE preferences CASCADE")
   dbAcc.conn.commit()
  
 own_d = [0, "group@owner.com", "group", "owner", "password", 1]
@@ -192,3 +203,171 @@ def test_skills():
   clear_groups()
   clear_skills()
   
+def test_reset_codes():
+  use_d[0] = dbAcc.create_user(use_d[1], use_d[4], use_d[2], use_d[3], use_d[5])
+  code1 = [use_d[0], "resetcode", datetime.datetime.now()]
+  dbAcc.create_reset_code(code1[0], code1[1], code1[2])
+  given = dbAcc.get_reset_code(use_d[0])
+  assert given == tuple(code1)
+  
+  code2 = [use_d[0], "newcode", datetime.datetime.now()]
+  dbAcc.create_reset_code(code2[0], code2[1], code2[2])
+  given = dbAcc.get_reset_code(use_d[0])
+  assert given == tuple(code2)
+  
+  dbAcc.remove_reset_code(use_d[0])
+  given = dbAcc.get_reset_code(use_d[0])
+  assert given == None
+  clear_users()
+  clear_reset_codes()
+
+use_d0 = [0, "Email@provider.com", "me", "them", "password", 1]
+use_d1 = [0, "Email@provider.com", "me", "them", "password", 1]
+use_d2 = [0, "Email@provider.com", "me", "them", "password", 1]
+use_d3 = [0, "Email@provider.com", "me", "them", "password", 1]
+use_d4 = [0, "Email@provider.com", "me", "them", "password", 1]
+def test_preferences():
+  use_d0[0] = dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
+  use_d1[0] = dbAcc.create_user(use_d1[1], use_d1[4], use_d1[2], use_d1[3], use_d1[5])
+  use_d2[0] = dbAcc.create_user(use_d2[1], use_d2[4], use_d2[2], use_d2[3], use_d2[5])
+  use_d3[0] = dbAcc.create_user(use_d3[1], use_d3[4], use_d3[2], use_d3[3], use_d3[5])
+  use_d4[0] = dbAcc.create_user(use_d4[1], use_d4[4], use_d4[2], use_d4[3], use_d4[5])
+  
+  prefs0 = [1, 2, 3, 4, 5]
+  prefs1 = [2, 3, 4, 5, 1]
+  prefs2 = [3, 4, 5, 1, 2]
+  prefs3 = [4, 5, 1, 2, 3]
+  prefs4 = [5, 1, 2, 3, 4]
+  ranks = [1, 2, 3, 4, 5]
+  
+  own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], own_d[3], own_d[5])
+  pd = [0, own_d[0], "a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+  pids = []
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  
+  dbAcc.create_preferences(use_d0[0], prefs0, ranks)
+  dbAcc.create_preferences(use_d1[0], prefs1, ranks)
+  dbAcc.create_preferences(use_d2[0], prefs2, ranks)
+  dbAcc.create_preferences(use_d3[0], prefs3, ranks)
+  dbAcc.create_preferences(use_d4[0], prefs4, ranks)
+  
+  given = dbAcc.get_user_preferences(use_d0[0])
+  assert (prefs0[0], ranks[0]) in given
+  assert (prefs0[1], ranks[1]) in given
+  assert (prefs0[2], ranks[2]) in given
+  assert (prefs0[3], ranks[3]) in given
+  assert (prefs0[4], ranks[4]) in given
+  
+  grp_d = [0, "group"]
+  grp_d[0] = dbAcc.create_group(use_d0[0], grp_d[1])
+  dbAcc.add_user_to_group(use_d1[0], grp_d[0])
+  dbAcc.add_user_to_group(use_d2[0], grp_d[0])
+  dbAcc.add_user_to_group(use_d3[0], grp_d[0])
+  dbAcc.add_user_to_group(use_d4[0], grp_d[0])
+  
+  skill_combs = []
+  for i in range (1, 5):
+    for j in range(1, 5):
+      skill_combs.append((grp_d[0], i, j))
+  given = dbAcc.get_all_preferences()
+  for comb in skill_combs:
+    assert comb in given
+    
+  dbAcc.delete_preferences(use_d0[0])
+  given = dbAcc.get_user_preferences(use_d0[0])
+  assert given == []
+  
+  clear_users()
+  clear_groups()
+  clear_projects()
+  clear_preferences()
+  
+def test_get_alls(): 
+  use_d0[0] = dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
+  use_d1[0] = dbAcc.create_user(use_d1[1], use_d1[4], use_d1[2], use_d1[3], use_d1[5])
+  use_d2[0] = dbAcc.create_user(use_d2[1], use_d2[4], use_d2[2], use_d2[3], use_d2[5])
+  use_d3[0] = dbAcc.create_user(use_d3[1], use_d3[4], use_d3[2], use_d3[3], use_d3[5])
+  use_d4[0] = dbAcc.create_user(use_d4[1], use_d4[4], use_d4[2], use_d4[3], use_d4[5])
+  
+  grp_d = [0, "group"]
+  grp_d[0] = dbAcc.create_group(use_d0[0], grp_d[1])
+  dbAcc.add_user_to_group(use_d1[0], grp_d[0])
+  dbAcc.add_user_to_group(use_d2[0], grp_d[0])
+  dbAcc.add_user_to_group(use_d3[0], grp_d[0])
+  dbAcc.add_user_to_group(use_d4[0], grp_d[0])
+  
+  skl_d0 = [0, "python"]
+  skl_d1 = [0, "c++"]
+  skl_d2 = [0, "javascript"]
+  skl_d3 = [0, "c"]
+  skl_d4 = [0, "c#"]
+  skl_d5 = [0, "sql"]
+
+  skl_d0[0] = dbAcc.create_skill(skl_d0[1])
+  skl_d1[0] = dbAcc.create_skill(skl_d1[1])
+  skl_d2[0] = dbAcc.create_skill(skl_d2[1])
+  skl_d3[0] = dbAcc.create_skill(skl_d3[1])
+  skl_d4[0] = dbAcc.create_skill(skl_d4[1])
+  skl_d5[0] = dbAcc.create_skill(skl_d5[1])
+
+  #two of each skill, only one for skl_d0 and skl_d1
+  dbAcc.add_skill_to_user(skl_d0[0], use_d0[0])
+  dbAcc.add_skill_to_user(skl_d1[0], use_d0[0])
+  dbAcc.add_skill_to_user(skl_d1[0], use_d1[0])
+  dbAcc.add_skill_to_user(skl_d2[0], use_d1[0])
+  dbAcc.add_skill_to_user(skl_d2[0], use_d2[0])
+  dbAcc.add_skill_to_user(skl_d3[0], use_d2[0])
+  dbAcc.add_skill_to_user(skl_d3[0], use_d3[0])
+  dbAcc.add_skill_to_user(skl_d4[0], use_d3[0])
+  dbAcc.add_skill_to_user(skl_d4[0], use_d4[0])
+  dbAcc.add_skill_to_user(skl_d5[0], use_d4[0])
+  
+  given = dbAcc.get_all_groups_skills()
+  assert (grp_d[0], skl_d0[0], 1) in given
+  assert (grp_d[0], skl_d1[0], 2) in given
+  assert (grp_d[0], skl_d2[0], 2) in given
+  assert (grp_d[0], skl_d3[0], 2) in given
+  assert (grp_d[0], skl_d4[0], 2) in given
+  assert (grp_d[0], skl_d5[0], 1) in given
+  
+  own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], own_d[3], own_d[5])
+  pd = [0, own_d[0], "a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+  pids = []
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  pids.append(dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11]))
+  
+  #two of each skill, only one for skl_d0 and skl_d1
+  dbAcc.add_skill_to_project(skl_d0[0], pids[0])
+  dbAcc.add_skill_to_project(skl_d1[0], pids[0])
+  dbAcc.add_skill_to_project(skl_d1[0], pids[1])
+  dbAcc.add_skill_to_project(skl_d2[0], pids[1])
+  dbAcc.add_skill_to_project(skl_d2[0], pids[2])
+  dbAcc.add_skill_to_project(skl_d3[0], pids[2])
+  dbAcc.add_skill_to_project(skl_d3[0], pids[3])
+  dbAcc.add_skill_to_project(skl_d4[0], pids[3])
+  dbAcc.add_skill_to_project(skl_d4[0], pids[4])
+  dbAcc.add_skill_to_project(skl_d5[0], pids[4])
+  
+  given = dbAcc.get_all_project_skills()
+  assert (pids[0], skl_d0[0]) in given
+  assert (pids[0], skl_d1[0]) in given
+  assert (pids[1], skl_d1[0]) in given
+  assert (pids[1], skl_d2[0]) in given
+  assert (pids[2], skl_d2[0]) in given
+  assert (pids[2], skl_d3[0]) in given
+  assert (pids[3], skl_d3[0]) in given
+  assert (pids[3], skl_d4[0]) in given
+  assert (pids[4], skl_d4[0]) in given
+  assert (pids[4], skl_d5[0]) in given
+
+  clear_users()
+  clear_groups()
+  clear_projects()
+  clear_skills()

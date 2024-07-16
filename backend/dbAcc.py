@@ -1,6 +1,9 @@
 import psycopg2
 import typing
 from collections import namedtuple
+from datetime import datetime
+
+import psycopg2.extras
 
 # TODO: swap to using connection pool
 try: 
@@ -19,6 +22,11 @@ Proj_d_full = namedtuple("Proj_d_full", ["project_id", "owner_id", "title", "cli
                                          "outcomes", "supervision", "additional"])
 Skill_d = namedtuple("Skill_d", ["skill_id", "skill_name"])
 Group_skill_d = namedtuple("Group_skill_d", ["skill_id", "skill_count"])
+Groups_skill_d = namedtuple("Groups_skill_d", ["groupid", "skillid", "skillcount"])
+Projects_skill_d = namedtuple("Projects_skills_d", ["projectid", "skillid"])
+Reset_code_d = namedtuple("Reset_code_d", ["userid", "code", "timestamp"])
+User_pref_d = namedtuple("User_pref_d", ["projectid", "rank"])
+Group_pref_d = namedtuple("Group_pref_d", ["groupid", "projectid", "rank"])
 
 #--------------------------------
 #   Users
@@ -525,3 +533,144 @@ def get_group_skills(groupid: int) -> typing.List[Group_skill_d]:
   for rec in curs:
     ret.append(Group_skill_d(rec[0], rec[1]))
   return ret
+
+def get_all_groups_skills():
+  ''' Gets all skills for all groups
+  Returns:
+    [tuple], (groupid, skill_id, count)
+  '''
+  curs = conn.cursor()
+  curs.execute(""" SELECT groups.groupid, skills.skillid, COUNT(skills.skillid) FROM groups
+              JOIN users ON users.groupid = groups.groupid
+              JOIN userskills ON userskills.userid = users.userid
+              JOIN skills ON skills.skillid = userskills.skillid
+              GROUP BY groups.groupid, skills.skillid""")
+  ret = []
+  for rec in curs:
+    ret.append(Groups_skill_d(rec[0], rec[1], rec[2]))
+  return ret
+
+def get_all_project_skills():
+  ''' Gets all skills for all projects
+  
+  Returns:
+    [tuple], (projectid, skillid)
+  '''
+  curs = conn.cursor()
+  curs.execute("""SELECT projects.projectid, projectskills.skillid FROM projects
+               JOIN projectskills ON projectskills.projectid = projects.projectid""")
+  ret = []
+  for rec in curs:
+    ret.append(Projects_skill_d(rec[0], rec[1]))
+  return ret
+
+#-----------------------
+# Reset codes
+
+def create_reset_code(userid: int, code: str, timestamp: datetime):
+  ''' Creates a code for resetting a password in the database
+  
+  Parameters:
+    userid (integer)
+    code (string)
+    timestamp (datetime)
+    
+  Notes:
+    There should only ever be one code per user -- this function will handle that
+  '''
+  curs = conn.cursor()
+  curs.execute("""INSERT INTO resetcodes (userid, code, created) VALUES (%s, %s, %s)
+                  ON CONFLICT (userid) DO UPDATE
+                  SET code = %s, created = %s""", (userid, code, timestamp, code, timestamp))
+  conn.commit()
+  
+def get_reset_code(userid: int):
+  ''' Gets the reset code for a user
+  
+  Parameters:
+    userid (int)
+  
+  Returns:
+    tuple, (userid, code, timestamp)
+    None, if code does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("""SELECT * FROM resetcodes WHERE userid = %s""", (userid,))
+  rec = curs.fetchone()
+  if rec == None:
+      return None
+  return Reset_code_d(rec[0], rec[1], rec[2])
+
+def remove_reset_code(userid: int):
+  ''' Removes the reset code for the user
+  
+  Parameters:
+    userid (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM resetcodes WHERE userid = %s", (userid,))
+  conn.commit()
+
+#--------------------
+#Preferences
+
+def create_preferences(userid: int, projectids: typing.List[int], ranks: typing.List[int]):
+  ''' Creates preferences for a user in the database
+  
+  Paremeters:
+    userid (integer)
+    projectids list[integer], list of all projectids
+    ranks list[integer], ranks corresponding to projects 
+  '''
+  vals = []
+  for i in range(0, len(projectids)):
+    vals.append((userid, projectids[i], ranks[i]))
+  curs = conn.cursor()
+  psycopg2.extras.execute_values(curs, "INSERT INTO preferences (userid, projectid, rank) VALUES %s", vals)
+  conn.commit()
+  
+def delete_preferences(userid: int):
+  ''' Deletes all preferences a user has
+
+  Paramters:
+    userid (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM preferences WHERE userid = %s", (userid,))
+  conn.commit()
+  
+def get_user_preferences(userid: int) -> typing.List[User_pref_d]:
+  ''' Gets a single users preferences
+  
+  Paremeters:
+    userid (integer)
+    
+  Returns:
+    list[tuple] (projectid, rank)
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT projectid, rank FROM preferences WHERE userid = %s", (userid,))
+  ret = []
+  for rec in curs:
+    ret.append(User_pref_d(rec[0], rec[1]))
+  return ret
+
+def get_all_preferences():
+  ''' Gets all preferences in the system
+  
+  Returns:
+    list[tuple] (groupid, projectid, rank)
+  
+  Notes:
+    This will not get preferences for users that are not in a group
+  '''
+  
+  curs = conn.cursor()
+  curs.execute("""SELECT groups.groupid, preferences.projectid, preferences.rank FROM groups
+              JOIN users ON users.groupid = groups.groupid
+              JOIN preferences ON preferences.userid = USERS.userid""")
+  ret = []
+  for rec in curs:
+    ret.append(Group_pref_d(rec[0], rec[1], rec[2]))
+  return ret
+  
