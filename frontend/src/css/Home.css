@@ -1,81 +1,168 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+html {
+  background: #317dda;
+}
+
+body {
+  background-image: url('sea_landscape.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  position: relative;
+  z-index: 1;
+}
+
+.cloud { 
+  height: 60%; 
+  width: 500%; 
+  background: url(cloud.png); 
+  display: block; 
+  position: fixed; 
+  bottom: 0%; 
+  left: 0%; 
+  background-repeat: repeat-x; 
+  animation: moveRight 30s linear infinite;
+  z-index: 0;
+}
+
+.boat { 
+  position: absolute; 
+  height: 300px;
+  width: 300px;
+  bottom: 0%; 
+  left: 14%; 
+  background: url('boat.png'); 
+  background-size: contain;
+  background-repeat: no-repeat;
+  animation: suspension 1s linear infinite;
+  z-index: 2;
+}
+
+@keyframes moveRight {
+  100% {
+    transform: translate(-2950px);
+  }
+}
+@keyframes suspension {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
 .home-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  
-  .home-header {
-    background-color: #f8f8f8;
-    width: 100%;
-    padding: 20px 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .home-content {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    width: 80%;
-    margin: 50px auto;
-  }
-  
-  .home-info {
-    max-width: 50%;
-  }
-  
-  .home-image {
-    width: 100px;
-    height: auto;
-  }
-  
-  .login-form {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .login-form form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .login-form input, .login-form button {
-    padding: 10px;
-    font-size: 16px;
-    width: 100%;
-  }
-  
-  .login-form button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .login-form button:hover {
-    background-color: #45a049;
-  }
-  
-  .register-button {
-    margin-top: 10px;
-    padding: 10px;
-    font-size: 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .register-button a {
-    color: white;
-    text-decoration: none;
-  }
-  
-  .register-button:hover {
-    background-color: #45a049;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  transform: translate3d(0, 0, 0);
+  z-index: 2; /* Ensures home container is above the cloud */
+}
+
+.home-header {
+  background-color: #a48372;
+  width: 100%;
+  padding: 20px 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centers the content horizontally */
+}
+
+.home-header h1 {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  color: #ffffff;
+  text-shadow: 2px 2px #000000;
+}
+
+.home-logo {
+  margin-right: 10px;
+}
+
+.home-content {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 80%;
+  margin: 50px auto;
+  z-index: 2;
+}
+
+.home-info {
+  max-width: 40%;
+  z-index: 2;
+}
+
+.home-logo {
+  width: 80px;
+  height: auto;
+  z-index: 2;
+}
+
+.login-form {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.login-form form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+}
+
+.login-form input, .login-form button {
+  padding: 10px;
+  font-size: 16px;
+  width: 100%;
+  z-index: 2;
+}
+
+.login-form button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.login-form button:hover {
+  background-color: #45a049;
+  z-index: 2;
+}
+
+.register-button {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.register-button a {
+  color: white;
+  text-decoration: none;
+  z-index: 2;
+}
+
+.register-button:hover {
+  background-color: #45a049;
+  z-index: 2;
+}

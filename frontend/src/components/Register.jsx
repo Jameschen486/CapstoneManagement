@@ -68,8 +68,7 @@ const Register = () => {
   return (
     <div className="register-container">
       <header className="register-header">
-        <h1>Registration page</h1>
-        <button onClick={handleBack} className="back-button">Back to Home</button>
+        <h1>Registration page <button onClick={handleBack} className="back-button">Back to Home</button></h1>
       </header>
       <div className="register-content">
         {message && <p className="message">{message}</p>}
@@ -135,7 +134,7 @@ const Register = () => {
               required
             />
           </div>
-          <div className="form-group">
+          {/* <div className="form-group">
             <label>Select Role:</label>
             <select
               value={role}
@@ -151,7 +150,7 @@ const Register = () => {
               <option value="4">Administrator</option>
               <option value="5">Other</option>
             </select>
-          </div>
+          </div> */}
           <button type="submit" className='create-account-button'>Create New Account</button>
         </form>
       </div>
