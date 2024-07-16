@@ -48,6 +48,21 @@ CREATE TABLE preferences (
   level         integer
 );
 
+CREATE TABLE skills (
+  skillid       serial PRIMARY KEY,
+  skillname     varchar
+);
+
+CREATE TABLE userskills (
+  userid        integer REFERENCES users(userid),
+  skillid       integer REFERENCES skills(skillid)
+);
+
+CREATE TABLE projectskills (
+  projectid     integer REFERENCES projects(projectid),
+  skillid       integer REFERENCES skills(skillid)
+);
+
 CREATE TABLE notifications (
   notifid       serial PRIMARY KEY,
   userid        integer REFERENCES users(userid),
