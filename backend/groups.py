@@ -84,5 +84,15 @@ def leave_group(user_id):
     if get_user_by_id(user_id)[6] == None:
         raise AccessError(description="User is not a member of any group")
     
+    group_id = get_user_by_id(user_id)[6]
+
+    # If this person is last member of the group, then group gets deleted.
+    if len(get_group_members(group_id)) == 1:
+        remove_user_from_group(user_id)
+        dbAcc.delete_group()
+        return {"message": "User has left the group, group has been removed"}, 200
+    
+    # If this person is not the group creator and there is still member remaining, it will be passed onto the next member
+    
     remove_user_from_group(user_id)
     return {"message": "User has left the group"}, 200
