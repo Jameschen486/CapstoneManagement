@@ -87,6 +87,12 @@ def test_group_create_retrieve():
   groupid = dbAcc.create_group(own_d[0], groupname)
   group_d = dbAcc.get_group_by_id(groupid)
   assert group_d == (groupid, own_d[0], groupname)
+  
+  dbAcc.add_user_to_group(use_d[0], groupid)
+  dbAcc.update_group_owner(use_d[0], groupid)
+  group_d = dbAcc.get_group_by_id(groupid)
+  assert group_d == (groupid, use_d[0], groupname)
+  
   own_deets = dbAcc.get_user_by_id(own_d[0])
   assert own_deets[6] == groupid
   count = dbAcc.get_groupcount_by_name(groupname)
