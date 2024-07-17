@@ -141,6 +141,17 @@ def add_user_to_group(userid: int, group_id: int):
   curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, userid))
   conn.commit()
   
+def update_group_owner(userid: int, groupid: int):
+  ''' Updates the owner of  a given group
+  
+  Parameters:
+    userid (int), new owner of group
+    groupid (int)
+  '''
+  curs = conn.cursor()
+  curs.execute("UPDATE groups SET ownerid = %s WHERE groupid = %s", (userid, groupid))
+  conn.commit()
+  
 def remove_user_from_group(userid: int):
   ''' Removes a user from the group they may be in
   
