@@ -2,7 +2,6 @@ from tests import helper
 from permission import Role
 
 
-
 client = helper.CLIENT
 
 
@@ -143,7 +142,6 @@ def test_permission_create():
                 # can not create project for non-client user
                 owner_id not in [client_id0, client_id1] or
                 # client can not create project for other clients
-
                 {user_id, owner_id} == {client_id0, client_id1} or
                 # user_id belongs to student or tutor
                 user_id in [student_id, tutor_id]
