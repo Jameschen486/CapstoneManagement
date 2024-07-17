@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const GroupRequests = () => {
+const GroupRequests = ({ groupId }) => {
   const [requests, setRequests] = useState([]);
 
   useEffect(() => {
@@ -39,8 +39,13 @@ const GroupRequests = () => {
       const formData = new FormData();
       formData.append('userid', localStorage.getItem('userId'));
       formData.append('applicantid', applicantId);
-      formData.append('groupid', localStorage.getItem('groupId'));
-      formData.append('accept', accept);
+      formData.append('groupid', groupId);
+      formData.append('accept', accept ? '1' : ''); // Send '1' for true and '' for false
+
+      // Log form data entries
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
 
       const response = await fetch('http://localhost:5001/group/request/handle', {
         method: 'POST',
@@ -51,7 +56,8 @@ const GroupRequests = () => {
       });
 
       const data = await response.json();
-      console.log(data); // Log the response for debugging
+      console.log('Response from handle request:', data); // Log the response for debugging
+
       if (response.ok) {
         alert(data.message);
         // Refresh the join requests

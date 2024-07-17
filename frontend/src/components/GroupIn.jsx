@@ -47,7 +47,7 @@ const GroupIn = ({ groupData }) => {
       {groupData.ownerid === parseInt(localStorage.getItem('userId'), 10) && (
         <>
           <button onClick={() => setShowRequests(!showRequests)}>View Requests</button>
-          {showRequests && <GroupRequests />}
+          {showRequests && <GroupRequests groupId={groupData.groupid} />}
         </>
       )}
     </div>
