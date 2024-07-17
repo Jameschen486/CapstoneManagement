@@ -26,6 +26,10 @@ const Dashboard = () => {
     localStorage.removeItem('role');
     navigate('/');
   };
+  
+  const handleGroupsClick = () => {
+    navigate('/groups');
+  };
 
   const renderDashboardContent = () => {
     switch (role) {
@@ -35,9 +39,10 @@ const Dashboard = () => {
             <div className='dashboard-header-row'>
                 <h2>Student Dashboard</h2>
                 <div className="dashboard-icons">
-                    <button onClick={() => setShowNotificationModal(true)}>&#128276;</button>
-                    <button onClick={() => setShowMessageModal(true)}>&#128488;</button>
-                    <button>&#128100;</button>
+                    <button onClick={() => setShowNotificationModal(true)} aria-label = "Notifications">&#128276;</button>
+                    <button onClick={() => setShowMessageModal(true)} aria-label = "Messages">&#128488;</button>
+                    <button aria-label = "Profile">&#128100;</button>
+                    <button onClick={handleGroupsClick} aria-label="Groups">&#128101;</button>
                 </div>
             </div>
             <p>Here you can manage your projects, view messages, and notifications.</p>
