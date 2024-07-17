@@ -36,7 +36,16 @@ const Groups = () => {
           const groupData = await groupResponse.json();
           console.log('Group data:', groupData);
           setInGroup(true);
-          setGroupData(groupData);
+          setGroupData({
+            groupid: groupData.groupid,
+            groupname: groupData.groupname,
+            ownerid: groupData.ownerid,
+            group_members: groupData.group_members.map(member => ({
+              userid: member[0],
+              firstname: member[1],
+              lastname: member[2],
+            })),
+          });
         }
       } catch (error) {
         console.error('Error fetching group data:', error);

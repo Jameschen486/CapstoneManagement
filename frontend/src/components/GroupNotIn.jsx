@@ -17,7 +17,13 @@ const GroupNotIn = () => {
           },
         });
         const data = await response.json();
-        setGroups(data);
+        // Convert the list of tuples to list of objects
+        const formattedData = data.map(group => ({
+          groupid: group[0],
+          groupname: group[1],
+          member_count: group[2]
+        }));
+        setGroups(formattedData);
       } catch (error) {
         console.error('Error fetching groups:', error);
       }
@@ -27,20 +33,20 @@ const GroupNotIn = () => {
 
   const handleJoinGroup = async (groupId) => {
     try {
+      const formData = new FormData();
+      formData.append('groupid', groupId);
+      formData.append('userid', localStorage.getItem('userId'));
+  
       const response = await fetch('http://localhost:5001/group/join', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({
-          groupid: groupId,
-          userid: localStorage.getItem('userid'),
-        }),
+        body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         alert('Join request sent successfully!');
       } else {
@@ -65,7 +71,6 @@ const GroupNotIn = () => {
         <div key={group.groupid} className="group-item">
           <span>{group.groupname}</span>
           <span>{group.member_count}/{MAX_STUDENT_PER_GROUP}</span>
-          <span>{group.ownerid}</span>
           <button onClick={() => handleJoinGroup(group.groupid)}>Send request</button>
         </div>
       ))}

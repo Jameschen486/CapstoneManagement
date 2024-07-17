@@ -5,7 +5,33 @@ const GroupIn = ({ groupData }) => {
   const [showRequests, setShowRequests] = useState(false);
 
   const handleLeaveGroup = async () => {
-    // Handle leave group request
+    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+    
+    try {
+      const formData = new FormData();
+      formData.append('userid', userId);
+
+      const response = await fetch('http://localhost:5001/group/leave', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+        window.location.reload(); // Reload the page
+      } else {
+        alert(data.description || 'An error occurred');
+      }
+    } catch (error) {
+      console.error('Error leaving group:', error);
+      alert('An error occurred. Please try again.');
+    }
   };
 
   return (
@@ -14,11 +40,11 @@ const GroupIn = ({ groupData }) => {
       <h3>Members:</h3>
       {groupData.group_members.map((member) => (
         <div key={member.userid} className="member-item">
-          <span>{member.first_name} {member.last_name}</span>
+          <span>{member.firstname} {member.lastname}</span>
         </div>
       ))}
       <button onClick={handleLeaveGroup}>Leave group</button>
-      {groupData.isOwner && (
+      {groupData.ownerid === parseInt(localStorage.getItem('userId'), 10) && (
         <>
           <button onClick={() => setShowRequests(!showRequests)}>View Requests</button>
           {showRequests && <GroupRequests />}
