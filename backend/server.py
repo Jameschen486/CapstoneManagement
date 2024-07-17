@@ -7,6 +7,7 @@ from authentication import login, register, jwt_decode, return_user, auth_id, au
 from error import HTTPError
 from projects import Project
 from skills import Skill
+import preference
 
 app = Flask(__name__)
 CORS(app)
@@ -243,6 +244,39 @@ def skill_remove_project():
     skillid = data.get('skillid', default=None, type=int)
     if auth_id(token, userid): 
         response, status_code = Skill.remove_skill_project(userid, projectid, skillid)
+        return jsonify(response), status_code
+
+
+@app.route('/preference/add', methods=['POST'])
+def add_preference_route():
+    data = request.form
+    user_id = int(data.get('user_id'))
+    project_ids = data.getlist('project_ids')
+    ranks = data.getlist('ranks')
+    token = request.authorization
+    if auth_id(token, user_id): 
+        response, status_code = preference.add_preference(user_id, [int(pid) for pid in project_ids], [int(rank) for rank in ranks])
+        return jsonify(response), status_code
+
+@app.route('/preference/edit', methods=['POST'])
+def edit_preference_route():
+    data = request.form
+    user_id = int(data.get('user_id'))
+    project_ids = data.getlist('project_ids')
+    ranks = data.getlist('ranks')
+    token = request.authorization
+    if auth_id(token, user_id): 
+        response, status_code = preference.edit_preference(user_id, project_ids, ranks)
+        return jsonify(response), status_code
+
+@app.route('/preference/view', methods=['GET'])
+def view_preference_route():
+    user_id = int(request.args.get('user_id'))
+    student_id = int(request.args.get('student_id'))
+    token = request.authorization
+    if auth_id(token, user_id):
+        role = return_user(user_id)["role"]
+        response, status_code = preference.view_preference(user_id, student_id, role)
         return jsonify(response), status_code
 
 
