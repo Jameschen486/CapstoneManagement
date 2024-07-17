@@ -27,11 +27,14 @@ const Home = () => {
         // Store the token in localStorage
         localStorage.setItem('token', data.token);
 
-        // Decode the token to get the role
+        // Decode the token to get the role and user ID
         const decodedToken = jwt_decode(data.token);
         const userRole = decodedToken.role;
+        const userId = decodedToken.userid;
         console.log('Decoded role:', userRole);
+        console.log('Decoded userId:', userId);
         localStorage.setItem('role', userRole);
+        localStorage.setItem('userId', userId); 
 
         navigate('/dashboard');
       } else {
@@ -89,8 +92,8 @@ const Home = () => {
             <Link to="/register">Create New Account</Link>
           </button>
         </div>
-        <div className= 'cloud'></div>
-        <div className = 'boat'></div>
+        <div className='cloud'></div>
+        <div className='boat'></div>
       </div>
     </div>
   );

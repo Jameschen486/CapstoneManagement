@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import GroupNotIn from './GroupNotIn';
 import GroupIn from './GroupIn';
 import '../css/Groups.css';
@@ -6,20 +7,36 @@ import '../css/Groups.css';
 const Groups = () => {
   const [inGroup, setInGroup] = useState(false);
   const [groupData, setGroupData] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch the group data for the user
     const fetchGroupData = async () => {
       try {
-        const response = await fetch('/api/group', {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+
+        // Fetch user data
+        const userResponse = await fetch(`http://localhost:5001/user?id=${userId}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${token}`,
           },
         });
-        const data = await response.json();
-        if (data.group) {
+
+        const userData = await userResponse.json();
+        console.log('User data:', userData);
+
+        if (userData.groupid) {
+          // Fetch group data
+          const groupResponse = await fetch(`http://localhost:5001/group?groupid=${userData.groupid}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const groupData = await groupResponse.json();
+          console.log('Group data:', groupData);
           setInGroup(true);
-          setGroupData(data.group);
+          setGroupData(groupData);
         }
       } catch (error) {
         console.error('Error fetching group data:', error);
@@ -28,13 +45,22 @@ const Groups = () => {
     fetchGroupData();
   }, []);
 
+  const handleBack = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <div className="groups-container">
-      {inGroup ? (
-        <GroupIn groupData={groupData} />
-      ) : (
-        <GroupNotIn />
-      )}
+      <header className="groups-header">
+        <h1>Manage Group <button onClick={handleBack} className="back-button">Back to Dashboard</button></h1>
+      </header>
+      <div className='groups-content'>
+        {inGroup ? (
+          <GroupIn groupData={groupData} />
+        ) : (
+          <GroupNotIn />
+        )}
+      </div>
     </div>
   );
 };

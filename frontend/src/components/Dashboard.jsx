@@ -24,9 +24,11 @@ const Dashboard = () => {
     // Clear any stored user information (e.g., token)
     localStorage.removeItem('token');
     localStorage.removeItem('role');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('groupId');
     navigate('/');
   };
-  
+
   const handleGroupsClick = () => {
     navigate('/groups');
   };
@@ -37,13 +39,25 @@ const Dashboard = () => {
         return (
           <div className="dashboard-section">
             <div className='dashboard-header-row'>
-                <h2>Student Dashboard</h2>
-                <div className="dashboard-icons">
-                    <button onClick={() => setShowNotificationModal(true)} aria-label = "Notifications">&#128276;</button>
-                    <button onClick={() => setShowMessageModal(true)} aria-label = "Messages">&#128488;</button>
-                    <button aria-label = "Profile">&#128100;</button>
-                    <button onClick={handleGroupsClick} aria-label="Groups">&#128101;</button>
+              <h2>Student Dashboard</h2>
+              <div className="dashboard-icons">
+                <div className="icon-container">
+                  <button onClick={() => setShowNotificationModal(true)} aria-label="Notifications">&#128276;</button>
+                  <span className="icon-label">Notifications</span>
                 </div>
+                <div className="icon-container">
+                  <button onClick={() => setShowMessageModal(true)} aria-label="Messages">&#128488;</button>
+                  <span className="icon-label">Messages</span>
+                </div>
+                <div className="icon-container">
+                  <button aria-label="Profile">&#128100;</button>
+                  <span className="icon-label">Profile</span>
+                </div>
+                <div className="icon-container">
+                  <button onClick={handleGroupsClick} aria-label="Groups">&#128101;</button>
+                  <span className="icon-label">Groups</span>
+                </div>
+              </div>
             </div>
             <p>Here you can manage your projects, view messages, and notifications.</p>
           </div>
