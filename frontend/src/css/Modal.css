@@ -1,0 +1,32 @@
+/* Modal.css */
+.modal {
+    position: absolute;
+    top: 50px; /* Adjust this value as needed */
+    right: 0;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    border-radius: 5px;
+    z-index: 1000;
+  }
+  
+  .modal-main {
+    position: fixed;
+    background: white;
+    height: auto;
+    top: 23%;
+    left: 68%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    border-radius: 8px;
+  }
+  
+  .display-block {
+    display: block;
+  }
+  
+  .display-none {
+    display: none;
+  }
+  

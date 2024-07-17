@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Dashboard.css';
+import Modal from './Modal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('');
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
   useEffect(() => {
     // User role from localStorage
@@ -21,7 +24,13 @@ const Dashboard = () => {
     // Clear any stored user information (e.g., token)
     localStorage.removeItem('token');
     localStorage.removeItem('role');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('groupId');
     navigate('/');
+  };
+
+  const handleGroupsClick = () => {
+    navigate('/groups');
   };
 
   const renderDashboardContent = () => {
@@ -30,12 +39,25 @@ const Dashboard = () => {
         return (
           <div className="dashboard-section">
             <div className='dashboard-header-row'>
-                <h2>Student Dashboard</h2>
-                <div className="dashboard-icons">
-                    <div className="dashboard-icon notification-icon" title="Notifications">&#128276;</div>
-                    <div className="dashboard-icon message-icon" title="Messages">&#128488;</div>
-                    <div className="dashboard-icon profile-icon" title="Profile">&#128100;</div>
+              <h2>Student Dashboard</h2>
+              <div className="dashboard-icons">
+                <div className="icon-container">
+                  <button onClick={() => setShowNotificationModal(true)} aria-label="Notifications">&#128276;</button>
+                  <span className="icon-label">Notifications</span>
                 </div>
+                <div className="icon-container">
+                  <button onClick={() => setShowMessageModal(true)} aria-label="Messages">&#128488;</button>
+                  <span className="icon-label">Messages</span>
+                </div>
+                <div className="icon-container">
+                  <button aria-label="Profile">&#128100;</button>
+                  <span className="icon-label">Profile</span>
+                </div>
+                <div className="icon-container">
+                  <button onClick={handleGroupsClick} aria-label="Groups">&#128101;</button>
+                  <span className="icon-label">Groups</span>
+                </div>
+              </div>
             </div>
             <p>Here you can manage your projects, view messages, and notifications.</p>
           </div>
@@ -80,6 +102,12 @@ const Dashboard = () => {
       <div className="dashboard-content">
         {renderDashboardContent()}
       </div>
+      <Modal show={showNotificationModal} handleClose={() => setShowNotificationModal(false)} title="Notifications">
+        <p>No notifications yet.</p>
+      </Modal>
+      <Modal show={showMessageModal} handleClose={() => setShowMessageModal(false)} title="Messages">
+        <p>No messages yet.</p>
+      </Modal>
     </div>
   );
 };
