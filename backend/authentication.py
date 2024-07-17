@@ -5,6 +5,7 @@ import dbAcc
 import jwt
 
 from error import HTTPError
+from datetime import datetime
 key = "rngwarriors"
 
 def jwt_encode(payload):
@@ -71,3 +72,42 @@ def return_user(id):
 
 def getHashOf(password):
     return hashlib.md5(password.encode()).hexdigest()
+
+def auth_reset_request(email):
+    user = dbAcc.get_user_by_email(email)
+    if user is None:
+        raise HTTPError('Invalid email or password, please try again', 400)
+
+    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 6))
+    timestamp = datetime.now()
+
+    dbAcc.create_reset_code(user[0], code, timestamp)
+
+    #setting email
+    msg = EmailMessage()
+    msg.set_content(f"""
+Hello {user[2]},
+your password reset code for streams is {code}.
+If you did not make this request, you can ignore this email.""")
+
+    msg['Subject'] = "Password reset for Capstone Management"
+    msg['To'] = email
+    msg['From'] = server_mail
+
+    #sending email
+    server = smtplib.SMTP('mail')
+    server.send_message(msg)
+    server.quit
+    save_data()
+
+    return
+
+def auth_password_reset(email, reset_code, new_password):
+    user = dbAcc.get_user_by_email(email)
+    if (reset_code != dbAcc.get_reset_code(user[0]))
+        raise HTTPError('Incorrect reset code, try again.', 400)
+
+    hashedPassword = getHashOf(new_password)
+    update_password(user[0], hashedPassword)
+    dbAcc.remove_reset_code(user[0])
+    return

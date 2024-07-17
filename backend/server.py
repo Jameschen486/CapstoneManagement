@@ -3,7 +3,7 @@ from flask_cors import CORS
 # from flask_mysqldb import MySQL
 import groups
 
-from authentication import login, register, jwt_decode, return_user, auth_id, auth_role
+from authentication import login, register, jwt_decode, return_user, auth_id, auth_role, auth_password_reset, auth_reset_request
 from error import HTTPError
 from projects import Project
 
@@ -42,6 +42,26 @@ def auth_register():
     firstName = request.form['firstName']
     lastName = request.form['lastName']
     return jsonify(register(email, password, firstName, lastName))
+
+@app.route('/password/reset/request', methods=['POST'])
+def request_password_reset():
+    email = request.form['email']
+    try:
+        auth_reset_request(email)
+        return jsonify({"message": "Password reset email sent"}), 200
+    except Exception as e:
+        return jsonify({"error": "an error occured while sending email confirmation, please try again"}), 400
+
+@app.route('/password/reset', methods=['POST'])
+def reset_password():
+    email = request.form['email']
+    reset_code = request.form['reset_code']
+    new_password = request.form['new_password']
+    try:
+        auth_password_reset(email, reset_code, new_password)
+        return jsonify({"message": "Password has been reset"}), 200
+    except Exception as e:
+        return jsonify({"error": "an error occured while resetting your password, please try again"}), 400
 
 @app.route('/group/create', methods=['POST'])
 def create_group_endpoint():
