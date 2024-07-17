@@ -1,8 +1,10 @@
 
 from typing import Union
-from error import InputError, AccessError
+from error import InputError, AccessError, RoleError
 from werkzeug.datastructures import ImmutableMultiDict
-import dbAcc, permission
+import dbAcc, permission, load
+from authentication import return_user
+import typing
 
 class Project:
     pass
@@ -22,7 +24,7 @@ class Project:
                  supervision:str = None,
                  additional:str = None,
                  channel:Union[int, None] = None,
-                 ):
+                ):
         
         '''
         This constructor is treated as private
@@ -57,12 +59,8 @@ class Project:
         '''
         create a project in database
         '''
-
-        if dbAcc.get_user_by_id(ownerid) is None:
-            raise InputError(description=f"Intended owner {ownerid} does not exist")
-
-        if not permission.project_create(userid, ownerid):
-            return
+        load.user(ownerid)
+        permission.project_create(userid, ownerid)
 
         if not Project.title_is_valid(title):
             raise InputError(description=f"Invalid project title: {title}")
@@ -79,30 +77,30 @@ class Project:
        
 
     def get_details(userid: int, projectid: int):
-        project = Project.load(projectid)
-        if (project is None):
-            raise InputError(description=f"Project with id {projectid} does not exist")
-    
-        if not permission.project_details(userid, projectid):
-            return
+        project = load.project(projectid)
+        permission.project_details(userid, projectid)
 
-        response = vars(project)
+        response = vars(Project(*project))
         return response, 200
-
-
-    def load(projectid:int) -> Project:
-        '''
-        Load a project from database
-        '''
-        if (projectid is None):
-            return None
-        
-        project_info = dbAcc.get_project_by_id(projectid)
-        project = Project(*project_info) if (project_info is not None) else None
-        return project
     
 
-    def load_all() -> dict:
+    def view_all(userid: int) -> typing.Dict[int, Project]:
+        '''
+        View all projects. Client only see his projects
+        '''
+        permission.projects_view_all(userid)
+
+        projects = Project.load_all()
+
+        user = return_user(userid)
+        if user["role"] == permission.Role.CLIENT:
+            projects = {k: v for k, v in projects.items() if v.ownerid == userid}
+
+        projects = {k: vars(v) for k, v in projects.items()}
+        return projects, 200
+
+
+    def load_all() -> typing.Dict[int, Project]:
         '''
         Load all projects from database
         '''
@@ -124,15 +122,10 @@ class Project:
         userid = int(data['userid'])
         projectid = data.get('projectid', default=None, type=int)
         title = data.get('title', default=None)
-        old_project = Project.load(projectid)
+        old_project = Project(*load.project(projectid))
 
+        permission.project_edit(userid, projectid)
 
-        if old_project is None:
-            raise InputError(description=f"Project with id {projectid} does not exist")
-
-        if not permission.project_update(userid, projectid):
-            return
-        
         if Project.title_exist(title):
             # Also, new title can't be identical to the original title
             raise InputError(description=f"Project with title {title} exists")
@@ -165,13 +158,9 @@ class Project:
 
 
     def delete(userid:int, projectid:int):
-        project = Project.load(projectid)
-        if (project is None):
-            raise InputError(description=f"Project with id {projectid} does not exist")
-        
-        if not permission.project_delete(userid, projectid):
-            return
-        
+        load.project(projectid)
+        permission.project_edit(userid, projectid)
+
         dbAcc.delete_project_by_id(projectid)
 
         return {"message": "Project deleted.", "projectid": projectid}, 200

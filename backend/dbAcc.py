@@ -479,6 +479,23 @@ def remove_skill_from_project(skillid: int, projectid: int):
   
 #---------------------------
 # Retrieval
+def get_skill_by_id(skillid: int) -> Skill_d:
+  ''' Queries the database for skill information
+  
+  Parameters:
+    - skillid (integer)
+    
+  Returns:
+    - tuple (skill_id, skill_name)
+    - None, if skill does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM skills WHERE skillid = %s", (skillid,))
+  ret = curs.fetchone()
+  if ret == None:
+    return None
+  return Skill_d(ret[0], ret[1])
+
 def get_all_skills() -> typing.List[Skill_d]:
   ''' Returns a list of all skills and their details
   
