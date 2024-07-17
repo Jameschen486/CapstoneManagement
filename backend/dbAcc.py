@@ -177,7 +177,7 @@ def delete_group(groupid : int):
     groupid (int)
   '''
   curs = conn.cursor()
-  curs.execute("DELETE * FROM groups WHERE groupid = %s", (groupid,))
+  curs.execute("DELETE FROM groups WHERE groupid = %s", (groupid,))
   conn.commit()
 
 # Retrieval

@@ -81,3 +81,59 @@ def test_leave_group():
     assert response.status_code == 200
     data = response.get_json()
     assert data["message"] == "User has left the group"
+
+def test_leave_group_not_member():
+    helper.truncate()
+    student_id, token = helper.create_user(role=Role.STUDENT)
+    
+    response = helper.CLIENT.post('/group/leave', data={"userid": student_id}, headers=helper.token2headers(token))
+    assert response.status_code == 403
+    data = response.get_json()
+    assert data["message"] == "User is not a member of any group"
+
+def test_leave_group_last_member():
+    helper.truncate()
+    user_id, token = helper.create_user(role=Role.STUDENT)
+    group_id = helper.CLIENT.post('/group/create', data={"groupname": "testgroup", "ownerid": user_id}, headers=helper.token2headers(token)).json["group_id"]
+    assert group_id == 1
+    response = helper.CLIENT.post('/group/leave', data={"userid": user_id}, headers=helper.token2headers(token))
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["message"] == "User has left the group, group has been removed"
+
+def test_leave_group_creator_with_members():
+    helper.truncate()
+    user_id, token = helper.create_user(role=Role.STUDENT)
+    group_id = helper.CLIENT.post('/group/create', data={"groupname": "testgroup", "ownerid": user_id}, headers=helper.token2headers(token)).json["group_id"]
+    
+    member_id, token2 = helper.create_user(index = 1, role=Role.STUDENT)
+    helper.CLIENT.post('/group/join', data={"groupid": group_id, "userid": member_id}, headers=helper.token2headers(token2))
+    helper.CLIENT.post('/group/request/handle', data={"userid": user_id, "applicantid": member_id, "groupid": group_id, "accept": True}, headers=helper.token2headers(token))
+
+    response = helper.CLIENT.post('/group/leave', data={"userid": user_id}, headers=helper.token2headers(token))
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["message"] == "User has left the group"
+
+    # Verify that the next member is now the group owner
+    group_details = helper.CLIENT.get('/group', query_string={"groupid": group_id}, headers=helper.token2headers(token2)).json
+    assert group_details["ownerid"] == member_id
+
+def test_leave_group_member_not_creator():
+    helper.truncate()
+    user_id, token = helper.create_user(role=Role.STUDENT)
+    group_id = helper.CLIENT.post('/group/create', data={"groupname": "testgroup", "ownerid": user_id}, headers=helper.token2headers(token)).json["group_id"]
+    
+    member_id, token2 = helper.create_user(index = 1, role=Role.STUDENT)
+    helper.CLIENT.post('/group/join', data={"groupid": group_id, "userid": member_id}, headers=helper.token2headers(token2))
+    helper.CLIENT.post('/group/request/handle', data={"userid": user_id, "applicantid": member_id, "groupid": group_id, "accept": True}, headers=helper.token2headers(token))
+
+    response = helper.CLIENT.post('/group/leave', data={"userid": member_id}, headers=helper.token2headers(token2))
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["message"] == "User has left the group"
+
+    # Verify that the group still exists and the original creator is still the owner
+    group_details = helper.CLIENT.get('/group', query_string={"groupid": group_id}, headers=helper.token2headers(token)).json
+    assert group_details["ownerid"] == user_id
+    assert len(group_details["group_members"]) == 1
