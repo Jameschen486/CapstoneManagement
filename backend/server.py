@@ -6,6 +6,8 @@ import groups
 from authentication import login, register, jwt_decode, return_user, auth_id, auth_role, auth_password_reset, auth_reset_request
 from error import HTTPError
 from projects import Project
+from skills import Skill
+import preference
 
 app = Flask(__name__)
 CORS(app)
@@ -137,7 +139,7 @@ def create_project_route():
     token = request.authorization
     data = request.form
     userid = int(data['userid'])
-    ownerid = int(data['ownerid'])
+    ownerid = data.get('ownerid', default=None, type=int)
     title = data['title']
     if auth_id(token, userid): 
         response, status_code = Project.create(userid, ownerid, title)
@@ -151,6 +153,15 @@ def get_project_details_route():
     projectid = data.get('projectid', default=None, type=int)
     if auth_id(token, userid): 
         response, status_code = Project.get_details(userid, projectid)
+        return jsonify(response), status_code
+    
+@app.route('/projects/view', methods=['GET'])
+def view_projects_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    if auth_id(token, userid): 
+        response, status_code = Project.view_all(userid)
         return jsonify(response), status_code
 
 @app.route('/project/update', methods=['PUT'])
@@ -171,6 +182,123 @@ def delete_project_route():
     if auth_id(token, userid): 
         response, status_code = Project.delete(userid, project_id)
         return jsonify(response), status_code
+    
+@app.route('/skill/create', methods=['POST'])
+def create_skill_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    skillname = data.get('skillname', default=None)
+    if auth_id(token, userid): 
+        response, status_code = Skill.create(userid, skillname)
+        return jsonify(response), status_code
+
+@app.route('/skills/view', methods=['GET'])
+def get_skill_details_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    if auth_id(token, userid): 
+        response, status_code = Skill.view(userid)
+        return jsonify(response), status_code
+    
+@app.route('/skill/add/student', methods=['POST'])
+def skill_add_student_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    studentid = data.get('studentid', default=None, type=int)
+    skillid = data.get('skillid', default=None, type=int)
+    if auth_id(token, userid): 
+        response, status_code = Skill.add_skill_student(userid, studentid, skillid)
+        return jsonify(response), status_code
+
+@app.route('/skills/view/student', methods=['GET'])
+def skills_view_student_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    studentid = data.get('studentid', default=None, type=int)
+    if auth_id(token, userid): 
+        response, status_code = Skill.view_skills_student(userid, studentid)
+        return jsonify(response), status_code
+    
+@app.route('/skill/remove/student', methods=['DELETE'])
+def skill_remove_student():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    studentid = data.get('studentid', default=None, type=int)
+    skillid = data.get('skillid', default=None, type=int)
+    if auth_id(token, userid): 
+        response, status_code = Skill.remove_skill_student(userid, studentid, skillid)
+        return jsonify(response), status_code
+
+@app.route('/skill/add/project', methods=['POST'])
+def skill_add_project_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    projectid = data.get('projectid', default=None, type=int)
+    skillid = data.get('skillid', default=None, type=int)
+    if auth_id(token, userid): 
+        response, status_code = Skill.add_skill_project(userid, projectid, skillid)
+        return jsonify(response), status_code
+
+@app.route('/skills/view/project', methods=['GET'])
+def skills_view_project_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    projectid = data.get('projectid', default=None, type=int)
+    if auth_id(token, userid): 
+        response, status_code = Skill.view_skills_project(userid, projectid)
+        return jsonify(response), status_code
+    
+@app.route('/skill/remove/project', methods=['DELETE'])
+def skill_remove_project():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    projectid = data.get('projectid', default=None, type=int)
+    skillid = data.get('skillid', default=None, type=int)
+    if auth_id(token, userid): 
+        response, status_code = Skill.remove_skill_project(userid, projectid, skillid)
+        return jsonify(response), status_code
+
+
+@app.route('/preference/add', methods=['POST'])
+def add_preference_route():
+    data = request.form
+    user_id = int(data.get('user_id'))
+    project_ids = data.getlist('project_ids')
+    ranks = data.getlist('ranks')
+    token = request.authorization
+    if auth_id(token, user_id): 
+        response, status_code = preference.add_preference(user_id, [int(pid) for pid in project_ids], [int(rank) for rank in ranks])
+        return jsonify(response), status_code
+
+@app.route('/preference/edit', methods=['POST'])
+def edit_preference_route():
+    data = request.form
+    user_id = int(data.get('user_id'))
+    project_ids = data.getlist('project_ids')
+    ranks = data.getlist('ranks')
+    token = request.authorization
+    if auth_id(token, user_id): 
+        response, status_code = preference.edit_preference(user_id, project_ids, ranks)
+        return jsonify(response), status_code
+
+@app.route('/preference/view', methods=['GET'])
+def view_preference_route():
+    user_id = int(request.args.get('user_id'))
+    student_id = int(request.args.get('student_id'))
+    token = request.authorization
+    if auth_id(token, user_id):
+        role = return_user(user_id)["role"]
+        response, status_code = preference.view_preference(user_id, student_id, role)
+        return jsonify(response), status_code
+
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5001)

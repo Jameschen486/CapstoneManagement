@@ -23,7 +23,7 @@ Proj_d_full = namedtuple("Proj_d_full", ["project_id", "owner_id", "title", "cli
 Skill_d = namedtuple("Skill_d", ["skill_id", "skill_name"])
 Group_skill_d = namedtuple("Group_skill_d", ["skill_id", "skill_count"])
 Groups_skill_d = namedtuple("Groups_skill_d", ["groupid", "skillid", "skillcount"])
-Projects_skill_d = namedtuple("Projects_skills_d", ["projectid", "skillid"])
+Projects_skill_d = namedtuple("Projects_skills_d", ["projectid", "groupcount", "skillid"])
 Reset_code_d = namedtuple("Reset_code_d", ["userid", "code", "timestamp"])
 User_pref_d = namedtuple("User_pref_d", ["projectid", "rank"])
 Group_pref_d = namedtuple("Group_pref_d", ["groupid", "projectid", "rank"])
@@ -141,6 +141,17 @@ def add_user_to_group(userid: int, group_id: int):
   curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (group_id, userid))
   conn.commit()
   
+def update_group_owner(userid: int, groupid: int):
+  ''' Updates the owner of  a given group
+  
+  Parameters:
+    userid (int), new owner of group
+    groupid (int)
+  '''
+  curs = conn.cursor()
+  curs.execute("UPDATE groups SET ownerid = %s WHERE groupid = %s", (userid, groupid))
+  conn.commit()
+  
 def remove_user_from_group(userid: int):
   ''' Removes a user from the group they may be in
   
@@ -157,6 +168,16 @@ def remove_user_from_group(userid: int):
   # if owned_group != None:
   #   get_group_members(owned_group)
   curs.execute("UPDATE users SET groupid = NULL WHERE userid = %s", (userid,))
+  conn.commit()
+
+def delete_group(groupid : int):
+  ''' Deletes a group from the system
+  
+  Parameters:
+    groupid (int)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM groups WHERE groupid = %s", (groupid,))
   conn.commit()
 
 # Retrieval
@@ -469,6 +490,23 @@ def remove_skill_from_project(skillid: int, projectid: int):
   
 #---------------------------
 # Retrieval
+def get_skill_by_id(skillid: int) -> Skill_d:
+  ''' Queries the database for skill information
+  
+  Parameters:
+    - skillid (integer)
+    
+  Returns:
+    - tuple (skill_id, skill_name)
+    - None, if skill does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM skills WHERE skillid = %s", (skillid,))
+  ret = curs.fetchone()
+  if ret == None:
+    return None
+  return Skill_d(ret[0], ret[1])
+
 def get_all_skills() -> typing.List[Skill_d]:
   ''' Returns a list of all skills and their details
   
@@ -554,14 +592,22 @@ def get_all_project_skills():
   ''' Gets all skills for all projects
   
   Returns:
-    [tuple], (projectid, skillid)
+    [tuple], (projectid, groupcount, skillid)
+    
+  Notes:
+    Groupcount will be 0, if the groupcount stored was something other than a number
   '''
   curs = conn.cursor()
-  curs.execute("""SELECT projects.projectid, projectskills.skillid FROM projects
+  curs.execute("""SELECT projects.projectid, projects.groupcount, projectskills.skillid FROM projects
                JOIN projectskills ON projectskills.projectid = projects.projectid""")
   ret = []
   for rec in curs:
-    ret.append(Projects_skill_d(rec[0], rec[1]))
+    groupcount = 0
+    try:
+      groupcount = int(rec[1])
+    except:
+      groupcount = 0
+    ret.append(Projects_skill_d(rec[0], groupcount, rec[2]))
   return ret
 
 #-----------------------
