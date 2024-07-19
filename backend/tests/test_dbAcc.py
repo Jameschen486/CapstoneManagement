@@ -35,6 +35,11 @@ def clear_preferences():
   curs = dbAcc.conn.cursor()
   curs.execute("TRUNCATE preferences CASCADE")
   dbAcc.conn.commit()
+  
+def clear_notifs():
+  curs = dbAcc.conn.cursor()
+  curs.execute("TRUNCATE notifications RESTART IDENTITY CASCADE")
+  dbAcc.conn.commit()
  
 own_d = [0, "group@owner.com", "group", "owner", "password", 1]
 use_d = [0, "Email@provider.com", "me", "them", "password", 1]
@@ -377,3 +382,28 @@ def test_get_alls():
   clear_groups()
   clear_projects()
   clear_skills()
+  
+def test_notifications():
+  use_d0[0] = dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
+  notif_d0 = [0, datetime.datetime.now(), "notification0"]
+  notif_d1 = [0, datetime.datetime.now(), "notification1"]
+  
+  notif_d0[0] = dbAcc.create_notif(use_d0[0], notif_d0[1], notif_d0[2])
+  notif_d1[0] = dbAcc.create_notif(use_d0[0], notif_d1[1], notif_d1[2])
+  
+  given = dbAcc.get_notifs(use_d0[0])
+  assert tuple(notif_d0) in given
+  assert tuple(notif_d1) in given
+  
+  dbAcc.delete_notif(notif_d1[0])
+  given = dbAcc.get_notifs(use_d0[0])
+  assert tuple(notif_d0) in given
+  assert tuple(notif_d1) not in given
+  
+  notif_d1[0] = dbAcc.create_notif(use_d0[0], notif_d1[1], notif_d1[2])
+  dbAcc.delete_all_notifs(use_d0[0])
+  given = dbAcc.get_notifs(use_d0[0])
+  assert given == []
+  
+  clear_users()
+  clear_notifs()
