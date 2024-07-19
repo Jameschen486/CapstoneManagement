@@ -28,6 +28,8 @@ Reset_code_d = namedtuple("Reset_code_d", ["userid", "code", "timestamp"])
 User_pref_d = namedtuple("User_pref_d", ["projectid", "rank"])
 Group_pref_d = namedtuple("Group_pref_d", ["groupid", "projectid", "rank"])
 Notif_d_base = namedtuple("Notif_d_base", ["notifid", "timestamp", "content"])
+Channel_d_base = namedtuple("Channel_d_base", ["channelid", "channel_name"])
+Message_d_base = namedtuple("Message_d_base", ["messageid", "ownerid", "timestamp", "content"])
 
 #--------------------------------
 #   Users
@@ -736,7 +738,7 @@ def create_notif(userid: int, timestamp: datetime, content: str) -> int:
     notificationid, id of notification just created
   '''
   curs = conn.cursor()
-  curs.execute("INSERT INTO notifications (userid, created, content) VALUES (%s, %s, %s) RETURNING notifid", (userid, timestamp, content))
+  curs.execute("INSERT INTO notifications (userid, created, isnew, content) VALUES (%s, %s, %s, %s) RETURNING notifid", (userid, timestamp, True, content))
   conn.commit()
   return curs.fetchone()[0]
   
@@ -750,11 +752,28 @@ def get_notifs(userid: int) -> typing.List[Notif_d_base]:
     [tuple] (notifid, timestamp, content)
   '''
   curs = conn.cursor()
-  curs.execute("SELECT notifid, created, content FROM notifications WHERE userid = %s ORDER BY created DESC", (userid,))
+  curs.execute(""" WITH update AS 
+              (UPDATE notifications SET isnew = %s WHERE userid = %s RETURNING notifid, created, content)
+              SELECT * FROM update ORDER BY created DESC""", (False, userid))
+  conn.commit()
   ret = []
   for rec in curs:
     ret.append(Notif_d_base(rec[0], rec[1], rec[2]))
   return ret
+
+def get_new_notifs(userid: int) -> int:
+  ''' Gets the number of new notifications a user has
+    Notifications are no longer 'new' if get_notifs has been called before
+    
+  Parameters:
+    userid (int)
+  
+  Returns:
+    int, number of new notifs
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT count(*) FROM notifications WHERE userid = %s AND isnew = %s", (userid, True))
+  return curs.fetchone()[0]
 
 def delete_notif(notifid: int):
   ''' Deletes the specified notification
@@ -775,3 +794,144 @@ def delete_all_notifs(userid: int):
   curs = conn.cursor()
   curs.execute("DELETE FROM notifications WHERE userid = %s", (userid,))
   conn.commit()
+  
+#-----------------
+# Channels
+# manipulation
+
+def create_channel(channelname: str) -> int:
+  ''' Creates a new channel in the database
+  
+  Parameters:
+    channelname (string)
+  
+  Returns:
+    channelid (int), id of newly created channel
+    
+  Notes:
+    Just creating a channel effectively does nothing, you will also 
+    need to use assign_channel_to_group and assign_channel_to_project
+    as well as add_user_to_channel()
+  '''
+  pass
+
+def delete_channel(channelid: int):
+  ''' Deletes a channel in the database
+  
+  Parameters:
+    channelid (int)
+  
+  Notes:
+    Will also 'unassign' channels from projects and groups automatically
+  '''
+  pass
+
+def assign_channel_to_group(channelid: int, groupid: int):
+  ''' Assigns a channel to a group
+  
+  Parameters:
+    channelid (int)
+    groupid (int)  
+    
+  Notes:
+    Must also use add_user_to_channel(), will not automatically give group members access to channels
+  '''
+  pass
+
+def assign_channel_to_project(channelid: int, projectid: int):
+  ''' Assigns a channel to a project
+  
+  Parameters:
+    channelid (int)
+    projectid (int)
+  
+  Notes:
+    Must also use add_user_to_channel(), will not automatically give group members access to channels
+  '''
+  pass
+
+def add_user_to_channel(userid: int, channelid: int):
+  ''' Gives specified user access to specified channel
+  
+  Parameters:
+    userid (int)
+    channelid (int)
+  '''
+  pass
+
+def remove_user_from_channel(userid:int, channelid: int):
+  ''' Removes a specified user's access to a specified channel
+  
+  Parameters:
+    userid (int)
+    channelid (int)
+  '''
+  pass
+
+#retrieval
+def get_users_channels(userid: int) -> typing.List[Channel_d_base]:
+  ''' Gets all channelids a user has access to
+  
+  Parameters:
+    userid (int)
+    
+  Returns:
+    [tuple] (channelid, channel_name)
+  '''
+  pass
+
+#-----------------
+# Messages
+# manipulation
+
+def create_message(channelid: int, ownerid: int, timestamp: datetime, content: str):
+  ''' Creates a message inside a given channel
+  
+  Parameters:
+    channelid (int)
+    ownerid (int)
+    timestamp (datetime)
+    content (string)
+  '''
+  pass
+
+def edit_message(messageid: int, content: str):
+  ''' Edits a specified message
+  
+  Parameters:
+    messageid (int)
+    content (string)
+  '''
+  pass
+
+def delete_message(messageid: int):
+  ''' Deletes a specified message
+  
+  Parameters:
+    messageid (int)
+  '''
+  pass
+
+#retrieval
+def get_messages(channelid: int, last_message: int = -1) -> typing.List[Message_d_base]:
+  ''' Gets a page of messages given the last message
+      If you get page 1 with ids [100...51], then last_message should be set to 51. 
+      This function should then retrieve [50...1]
+  If no last_message is supplied, gets the last 50 messages sent in a channel
+  
+  Paramters:
+    channelid (int)
+    last_message (int), the latest message retrieved
+    
+  Returns:
+    [tuple] (messageid, ownerid, timestamp, content)
+  '''
+  pass
+
+def get_latest_message(channelid: int) -> Message_d_base:
+  ''' Gets the latest message sent in a channel, useful for real-time-updating when a message is sent
+  
+  Parameters:
+    channelid (int)
+  '''
+  pass
