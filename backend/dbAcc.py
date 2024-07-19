@@ -27,6 +27,7 @@ Projects_skill_d = namedtuple("Projects_skills_d", ["projectid", "groupcount", "
 Reset_code_d = namedtuple("Reset_code_d", ["userid", "code", "timestamp"])
 User_pref_d = namedtuple("User_pref_d", ["projectid", "rank"])
 Group_pref_d = namedtuple("Group_pref_d", ["groupid", "projectid", "rank"])
+Notif_d_base = namedtuple("Notif_d_base", ["notifid", "timestamp", "content"])
 
 #--------------------------------
 #   Users
@@ -720,3 +721,57 @@ def get_all_preferences():
     ret.append(Group_pref_d(rec[0], rec[1], rec[2]))
   return ret
   
+#--------
+# Notifications
+
+def create_notif(userid: int, timestamp: datetime, content: str) -> int:
+  ''' Creates a notification for given user
+  
+  Parameters:
+    userid (integer)
+    timestamp (datetime.datetime), time of creation
+    content (string)
+    
+  Returns:
+    notificationid, id of notification just created
+  '''
+  curs = conn.cursor()
+  curs.execute("INSERT INTO notifications (userid, created, content) VALUES (%s, %s, %s) RETURNING notifid", (userid, timestamp, content))
+  conn.commit()
+  return curs.fetchone()[0]
+  
+def get_notifs(userid: int) -> typing.List[Notif_d_base]:
+  ''' Returns all notifs for a given user
+  
+  Paremters:
+    userid (integer)
+    
+  Returns:
+    [tuple] (notifid, timestamp, content)
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT notifid, created, content FROM notifications WHERE userid = %s ORDER BY created DESC", (userid,))
+  ret = []
+  for rec in curs:
+    ret.append(Notif_d_base(rec[0], rec[1], rec[2]))
+  return ret
+
+def delete_notif(notifid: int):
+  ''' Deletes the specified notification
+
+  Parameters:
+    notifid (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM notifications WHERE notifid = %s", (notifid,))
+  conn.commit()
+  
+def delete_all_notifs(userid: int):
+  ''' Deletes all notifs that a user has
+  
+  Paramters:
+    userid (integer)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM notifications WHERE userid = %s", (userid,))
+  conn.commit()
