@@ -391,9 +391,15 @@ def test_notifications():
   notif_d0[0] = dbAcc.create_notif(use_d0[0], notif_d0[1], notif_d0[2])
   notif_d1[0] = dbAcc.create_notif(use_d0[0], notif_d1[1], notif_d1[2])
   
+  given = dbAcc.get_new_notifs(use_d0[0])
+  assert given == 2
+  
   given = dbAcc.get_notifs(use_d0[0])
   assert tuple(notif_d0) in given
   assert tuple(notif_d1) in given
+  
+  given = dbAcc.get_new_notifs(use_d0[0])
+  assert given == 0
   
   dbAcc.delete_notif(notif_d1[0])
   given = dbAcc.get_notifs(use_d0[0])
@@ -401,6 +407,8 @@ def test_notifications():
   assert tuple(notif_d1) not in given
   
   notif_d1[0] = dbAcc.create_notif(use_d0[0], notif_d1[1], notif_d1[2])
+  given = dbAcc.get_new_notifs(use_d0[0])
+  assert given == 1
   dbAcc.delete_all_notifs(use_d0[0])
   given = dbAcc.get_notifs(use_d0[0])
   assert given == []
