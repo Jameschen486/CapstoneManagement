@@ -72,6 +72,7 @@ CREATE TABLE resetcodes (
 CREATE TABLE notifications (
   notifid       serial PRIMARY KEY,
   userid        integer REFERENCES users(userid),
+  created       timestamp,
   content       text
 );
 
