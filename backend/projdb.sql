@@ -1,5 +1,6 @@
 CREATE TABLE channels (
-  channelid     serial PRIMARY KEY
+  channelid     serial PRIMARY KEY,
+  channelname   varchar
 );
 
 CREATE TABLE users (
@@ -73,6 +74,7 @@ CREATE TABLE notifications (
   notifid       serial PRIMARY KEY,
   userid        integer REFERENCES users(userid),
   created       timestamp,
+  isnew         boolean,
   content       text
 );
 
@@ -80,8 +82,8 @@ CREATE TABLE messages (
   messageid     serial PRIMARY KEY,
   channelid     integer REFERENCES channels(channelid),
   ownerid       integer REFERENCES users(userid),
-  content       text,
-  posttime      timestamp
+  created       timestamp,
+  content       text
 );
 
 CREATE TABLE accesschannels (
