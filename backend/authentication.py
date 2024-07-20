@@ -1,7 +1,6 @@
 import hashlib
 import random
 import dbAcc
-import dbAcc
 import jwt
 
 from error import HTTPError
@@ -11,7 +10,7 @@ def jwt_encode(payload):
     return jwt.encode(payload, key, algorithm="HS256")
 
 def jwt_decode(token):
-    try: 
+    try:
         payload = jwt.decode(token, key, algorithms="HS256", options={"verify_signature": True})
     except:
         raise HTTPError("Invalid Signature", 401)
@@ -40,7 +39,7 @@ def login(email, password) :
     user = dbAcc.get_user_by_email(email)
     if user is None:
         raise HTTPError('Invalid email or password, please try again', 400)
-    
+
     if getHashOf(password) == user[4]:
         payload = {
             'userid': user[0],
@@ -53,7 +52,7 @@ def login(email, password) :
         }
     else:
         raise HTTPError('Invalid email or password, please try again', 400)
-    
+
 def register(email, password, firstName, lastName, role=0):
     if dbAcc.get_user_by_email(email) is not None:
         raise HTTPError('User already exists, please try login or reset password', 400)
@@ -71,3 +70,18 @@ def return_user(id):
 
 def getHashOf(password):
     return hashlib.md5(password.encode()).hexdigest()
+
+def updateUserRole(email1, password, email2, role):
+    user = dbAcc.get_user_by_email(email1)
+    if user is None:
+        raise HTTPError('Invalid email, please try again', 400)
+
+    if getHashOf(password) == user[4]:
+        user2 = dbAcc.get_user_by_email(email2)
+        if user is None:
+            raise HTTPError('Invalid email, please try again', 400)
+        dbAcc.update_role(user2[0], role)
+    else:
+        raise HTTPError('Invalid email or password, please try again', 400)
+
+    return
