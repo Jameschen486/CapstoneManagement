@@ -6,12 +6,12 @@ from datetime import datetime
 import psycopg2.extras
 
 # TODO: swap to using connection pool
-try: 
+try:
   conn = psycopg2.connect(dbname='projdb', user='postgres', password='postgres', host="postgres")
-except: 
+except:
   print("Unable to connect to database.")
   exit()
-  
+
 #setup namedtuples
 User_d_full = namedtuple("User_d_full", ["userid", "email", "first_name", "last_name", "password", "role", "groupid"])
 User_d_base = namedtuple("User_d_base", ["userid", "first_name", "last_name"])
@@ -33,14 +33,14 @@ Group_pref_d = namedtuple("Group_pref_d", ["groupid", "projectid", "rank"])
 # Manipulation
 def create_user(email: str, password: str, first_name:str , last_name: str, role: int) -> int:
   ''' Creates a user in the databse
-  
+
   Parameters:
     - email (string)
     - password (string), hashed password
     - first_name
     - last_name
     - role (integer), user's intended role
-    
+
   Returns:
     - integer, the users id
   '''
@@ -52,7 +52,7 @@ def create_user(email: str, password: str, first_name:str , last_name: str, role
 
 def update_password(userid: int, password: str):
   ''' Updates a users password with given value
-  
+
   Parameters:
     - userid (integer), id of user to change
     - password (string), new password
@@ -63,7 +63,7 @@ def update_password(userid: int, password: str):
 
 def update_role(userid: int, role: int):
   ''' Modifies the role of a user
-  
+
   Parameters:
     - userid, id of user to issue change
     - role (integer), new role
@@ -71,7 +71,19 @@ def update_role(userid: int, role: int):
   curs = conn.cursor()
   curs.execute("UPDATE users SET role = %s WHERE userid = %s", (role, userid))
   conn.commit()
-  
+
+def update_user_name(userid: int, firstName: str, lastName: str):
+  ''' Modifies the name of a user
+
+  Parameters:
+    - userid, id of user to issue change
+    - firstName (String)
+    - lastName (String)
+  '''
+  curs = conn.cursor()
+  curs.execute("UPDATE users SET firstName = %s, lastName = %s WHERE userid = %s", (firstName, lastName, userid))
+  conn.commit()
+
 # Retrieval
 def get_user_by_id(userid: int) -> User_d_full:
   ''' Queries the database for user information

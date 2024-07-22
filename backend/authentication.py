@@ -78,10 +78,22 @@ def updateUserRole(email1, password, email2, role):
 
     if getHashOf(password) == user[4]:
         user2 = dbAcc.get_user_by_email(email2)
-        if user is None:
+        if user2 is None:
             raise HTTPError('Invalid email, please try again', 400)
         dbAcc.update_role(user2[0], role)
     else:
         raise HTTPError('Invalid email or password, please try again', 400)
 
     return
+
+def updateUserName(email, password, firstName, lastName):
+    user = dbAcc.get_user_by_email(email)
+    if user is None:
+        raise HTTPError('Invalid email, please try again', 400)
+
+    if getHashOf(password) == user[4]:
+        dbAcc.update_user_name(user[0], firstName, lastName)
+    else:
+        raise HTTPError('Invalid email or password, please try again', 400)
+    return
+
