@@ -1,5 +1,6 @@
 import dbAcc
 import datetime
+import random
 
 def clear_users():
   curs = dbAcc.conn.cursor()
@@ -40,7 +41,19 @@ def clear_notifs():
   curs = dbAcc.conn.cursor()
   curs.execute("TRUNCATE notifications RESTART IDENTITY CASCADE")
   dbAcc.conn.commit()
- 
+  
+def clear_channels():
+  curs = dbAcc.conn.cursor()
+  curs.execute("TRUNCATE accesschannels RESTART IDENTITY CASCADE")
+  dbAcc.conn.commit()
+  curs.execute("TRUNCATE channels RESTART IDENTITY CASCADE")
+  dbAcc.conn.commit()
+  
+def clear_messages():
+  curs = dbAcc.conn.cursor()
+  curs.execute("TRUNCATE messages RESTART IDENTITY CASCADE")
+  dbAcc.conn.commit()
+  
 own_d = [0, "group@owner.com", "group", "owner", "password", 1]
 use_d = [0, "Email@provider.com", "me", "them", "password", 1]
 def test_user_create_retrieve():
@@ -91,12 +104,12 @@ def test_group_create_retrieve():
   global groupid
   groupid = dbAcc.create_group(own_d[0], groupname)
   group_d = dbAcc.get_group_by_id(groupid)
-  assert group_d == (groupid, own_d[0], groupname)
+  assert group_d == (groupid, own_d[0], groupname, None, None)
   
   dbAcc.add_user_to_group(use_d[0], groupid)
   dbAcc.update_group_owner(use_d[0], groupid)
   group_d = dbAcc.get_group_by_id(groupid)
-  assert group_d == (groupid, use_d[0], groupname)
+  assert group_d == (groupid, use_d[0], groupname, None, None)
   
   own_deets = dbAcc.get_user_by_id(own_d[0])
   assert own_deets[6] == groupid
@@ -156,7 +169,7 @@ def test_join_requests():
 own_d = [0, "group@owner.com", "group", "owner", "password", 1]
 def test_projects():
   own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], own_d[3], own_d[5])
-  pd = [0, own_d[0], "a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+  pd = [0, own_d[0], "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", None]
   pd[0] = dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11])
   ret = dbAcc.get_all_projects()
   pdt = tuple(pd)
@@ -415,3 +428,109 @@ def test_notifications():
   
   clear_users()
   clear_notifs()
+  
+def test_channels():
+  #create 1 user two channels, add user to both
+  use_d0[0] = dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
+  ch_d0 = [0, "channel0"]
+  ch_d0[0] = dbAcc.create_channel(ch_d0[1])
+  ch_d1 = [0, "channel1"]
+  ch_d1[0] = dbAcc.create_channel(ch_d1[1])
+  dbAcc.add_user_to_channel(use_d0[0], ch_d0[0])
+  dbAcc.add_user_to_channel(use_d0[0], ch_d1[0])
+  given = dbAcc.get_users_channels(use_d0[0])
+  assert tuple(ch_d0) in given
+  assert tuple(ch_d1) in given
+  #create new user, add to one channel
+  use_d1[0] = dbAcc.create_user(use_d1[1], use_d1[4], use_d1[2], use_d1[3], use_d1[5])
+  dbAcc.add_user_to_channel(use_d1[0], ch_d0[0])
+  given = dbAcc.get_channel_members(ch_d0[0])
+  assert (use_d0[0], use_d0[2], use_d0[3]) in given
+  assert (use_d1[0], use_d1[2], use_d1[3]) in given
+  given = dbAcc.get_channel_members(ch_d1[0])
+  assert (use_d0[0], use_d0[2], use_d0[3]) in given
+  assert (use_d1[0], use_d1[2], use_d1[3]) not in given
+  #remove second user from channel
+  dbAcc.remove_user_from_channel(use_d1[0], ch_d0[0])
+  given = dbAcc.get_users_channels(use_d1[0])
+  assert tuple(ch_d0) not in given
+  assert tuple(ch_d1) not in given
+  given = dbAcc.get_channel_members(ch_d0[0])
+  assert (use_d0[0], use_d0[2], use_d0[3]) in given
+  assert (use_d1[0], use_d1[2], use_d1[3]) not in given
+  #create group, assign channel to group
+  grp_d = [0, "group"]
+  grp_d[0] = dbAcc.create_group(use_d0[0], grp_d[1])
+  dbAcc.assign_channel_to_group(ch_d0[0], grp_d[0])
+  given = dbAcc.get_group_by_id(grp_d[0])
+  assert given.channel == ch_d0[0]
+  #create project, assign channel to project
+  own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], own_d[3], own_d[5])
+  pd = [0, own_d[0], "a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+  pd[0] = dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11])
+  dbAcc.assign_channel_to_project(ch_d1[0], pd[0])
+  given = dbAcc.get_project_by_id(pd[0])
+  assert given.channel == ch_d1[0]
+  #delete channel, check unassigned to users groups and projects
+  dbAcc.delete_channel(ch_d0[0])
+  given = dbAcc.get_users_channels(use_d0[0])
+  assert tuple(ch_d0) not in given
+  assert tuple(ch_d1) in given
+  given = dbAcc.get_group_by_id(grp_d[0])
+  assert given.channel == None
+  dbAcc.delete_channel(ch_d1[0])
+  given = dbAcc.get_project_by_id(pd[0])
+  assert given.channel == None
+
+  clear_users()
+  clear_groups()
+  clear_projects()
+  clear_channels()
+  
+def test_messages():
+  #create user, channel
+  use_d0[0] = dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
+  ch_d0 = [0, "groupchannel0"]
+  ch_d0[0] = dbAcc.create_channel(ch_d0[0])
+  #create message, get message
+  msg_d0 = [0, use_d0[0], datetime.datetime.now(), "a"]
+  msg_d0[0] = dbAcc.create_message(ch_d0[0], msg_d0[1], msg_d0[2], msg_d0[3])
+  given = dbAcc.get_channel_messages(ch_d0[0])
+  assert tuple(msg_d0) in given
+  given = dbAcc.get_latest_message(ch_d0[0])
+  assert tuple(msg_d0) == given
+  #edit message
+  new_cont = "b"
+  dbAcc.edit_message(msg_d0[0], new_cont)
+  given = dbAcc.get_latest_message(ch_d0[0])
+  assert given.content == new_cont
+  #delete message
+  dbAcc.delete_message(msg_d0[0])
+  given = dbAcc.get_channel_messages(ch_d0[0])
+  assert given == []
+  #make more than a page of messages
+  messages = []
+  for i in range(1, 201):
+    cur_msg = [0, use_d0[0], datetime.datetime.now(), str(i)]
+    cur_msg[0] = dbAcc.create_message(ch_d0[0], cur_msg[1], cur_msg[2], cur_msg[3])
+    messages.append(cur_msg)
+  #get pages, length = 50
+  page1 = [msg for msg in messages if int(msg[3]) > 150]
+  page2 = [msg for msg in messages if int(msg[3]) > 100 and int(msg[3]) < 151]
+  page3 = [msg for msg in messages if int(msg[3]) > 50 and int(msg[3]) < 101]
+  page4 = [msg for msg in messages if int(msg[3]) > 0 and int(msg[3]) < 51]
+  given = dbAcc.get_channel_messages(ch_d0[0])
+  for msg in page1:
+    assert tuple(msg) in given
+  given = dbAcc.get_channel_messages(ch_d0[0], page1[0][2])
+  for msg in page2:
+    assert tuple(msg) in given
+  given = dbAcc.get_channel_messages(ch_d0[0], page2[0][2])
+  for msg in page3:
+    assert tuple(msg) in given
+  given = dbAcc.get_channel_messages(ch_d0[0], page3[0][2])
+  for msg in page4:
+    assert tuple(msg) in given
+  
+  clear_users()
+  clear_channels()
