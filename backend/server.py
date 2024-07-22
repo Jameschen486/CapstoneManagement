@@ -3,7 +3,7 @@ from flask_cors import CORS
 # from flask_mysqldb import MySQL
 import groups
 
-from authentication import login, register, jwt_decode, return_user, auth_id, auth_role, updateUserRole
+from authentication import login, register, jwt_decode, return_user, auth_id, auth_role, updateUserRole, updateUserName
 from error import HTTPError
 from projects import Project
 from skills import Skill
@@ -51,8 +51,15 @@ def update_user_role():
     password = request.form['password']
     email2 = request.form['email2']
     role = request.form['role']
-    updateUserRole(email1, password, email2, role)
     return jsonify(updateUserRole(email1, password, email2, role))
+
+@app.post('/updateUserName')
+def update_user_name():
+    email = request.form['email']
+    password = request.form['password']
+    firstName = request.form['firstName']
+    lastName = request.form['lastName']
+    return jsonify(updateUserName(email, password, firstName,lastName))
 
 @app.route('/group/create', methods=['POST'])
 def create_group_endpoint():
