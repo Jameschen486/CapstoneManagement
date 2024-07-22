@@ -15,11 +15,11 @@ except:
 #setup namedtuples
 User_d_full = namedtuple("User_d_full", ["userid", "email", "first_name", "last_name", "password", "role", "groupid"])
 User_d_base = namedtuple("User_d_base", ["userid", "first_name", "last_name"])
-Group_d_full = namedtuple("Group_d_full", ["groupid", "ownerid", "group_name"])
+Group_d_full = namedtuple("Group_d_full", ["groupid", "ownerid", "group_name", "project", "channel"])
 Group_d_base = namedtuple("Group_d_base", ["groupid", "group_name", "member_count"])
 Proj_d_full = namedtuple("Proj_d_full", ["project_id", "owner_id", "title", "clients", "specializations", 
                                          "groupcount", "background", "requirements", "req_knowledge", 
-                                         "outcomes", "supervision", "additional"])
+                                         "outcomes", "supervision", "additional", "channel"])
 Skill_d = namedtuple("Skill_d", ["skill_id", "skill_name"])
 Group_skill_d = namedtuple("Group_skill_d", ["skill_id", "skill_count"])
 Groups_skill_d = namedtuple("Groups_skill_d", ["groupid", "skillid", "skillcount"])
@@ -208,15 +208,18 @@ def get_group_by_id(groupid: int) -> Group_d_full:
     - groupid (integer)
     
   Returns:
-    - tuple (groupid, ownerid, group_name)
+    - tuple (groupid, ownerid, group_name, project, channel)
     - None, if groupid is invalid
+    
+  Notes:
+    Project and channel in the return tuple may be None if no group or channel is assigned
   '''
   curs = conn.cursor()
   curs.execute("SELECT * FROM groups WHERE groupid=%s", (groupid,))
   deets = curs.fetchone()
   if deets == None:
       return None
-  return Group_d_full(deets[0], deets[1], deets[2])
+  return Group_d_full(deets[0], deets[1], deets[2], deets[3], deets[4])
 
 def get_groupcount_by_name(groupname: str) -> int:
   ''' Queries the databse for the number of groups with a given name
@@ -355,15 +358,18 @@ def get_project_by_id(projectid: int) -> Proj_d_full:
   Returns:
     - tuple (project_id, owner_id, title, clients, specializations, 
              groupcount, background, requirements, req_knowledge, 
-             outcomes, supervision, additional)
+             outcomes, supervision, additional, channel)
     - None, if project does not exist
+    
+  Notes:
+    channel int the return tuple may be None if no channel is assigned
   '''
   curs = conn.cursor()
   curs.execute("SELECT * FROM projects WHERE projectid = %s", (projectid,))
   ret = curs.fetchone()
   if ret == None:
     return None
-  return Proj_d_full(ret[0], ret[1], ret[2], ret[3], ret[4], ret[5], ret[6], ret[7], ret[8], ret[9], ret[10], ret[11])
+  return Proj_d_full(ret[0], ret[1], ret[2], ret[3], ret[4], ret[5], ret[6], ret[7], ret[8], ret[9], ret[10], ret[11], ret[12])
 
 def get_all_projects() -> typing.List[Proj_d_full]:
   ''' Queries the database for all existing projects
@@ -377,7 +383,7 @@ def get_all_projects() -> typing.List[Proj_d_full]:
   curs.execute("SELECT * FROM projects")
   ret_list = []
   for rec in curs:
-    ret_list.append(Proj_d_full(rec[0], rec[1], rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], rec[10], rec[11]))
+    ret_list.append(Proj_d_full(rec[0], rec[1], rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], rec[10], rec[11], rec[12]))
   return ret_list
   
 
@@ -813,18 +819,27 @@ def create_channel(channelname: str) -> int:
     need to use assign_channel_to_group and assign_channel_to_project
     as well as add_user_to_channel()
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("INSERT INTO channels (channelname) VALUES (%s) RETURNING channelid", (channelname,))
+  conn.commit()
+  return curs.fetchone()[0]
 
 def delete_channel(channelid: int):
   ''' Deletes a channel in the database
-  
+      Should also delete all messages for said channel
+      
   Parameters:
     channelid (int)
   
   Notes:
-    Will also 'unassign' channels from projects and groups automatically
+    Should also 'unassign' channels from projects and groups automatically
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("""DELETE FROM channels WHERE channelid = %s""", (channelid,))
+  # curs.execute("""DELETE FROM accesschannels WHERE channelid = %s;
+  #              DELETE FROM messages WHERE channelid = %s;
+  #              DELETE FROM channels WHERE channelid = %s""", (channelid, channelid, channelid))
+  conn.commit()
 
 def assign_channel_to_group(channelid: int, groupid: int):
   ''' Assigns a channel to a group
@@ -836,7 +851,9 @@ def assign_channel_to_group(channelid: int, groupid: int):
   Notes:
     Must also use add_user_to_channel(), will not automatically give group members access to channels
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("UPDATE groups SET channel = %s WHERE groupid = %s", (channelid, groupid))
+  conn.commit()
 
 def assign_channel_to_project(channelid: int, projectid: int):
   ''' Assigns a channel to a project
@@ -848,7 +865,9 @@ def assign_channel_to_project(channelid: int, projectid: int):
   Notes:
     Must also use add_user_to_channel(), will not automatically give group members access to channels
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("UPDATE projects SET channel = %s WHERE projectid = %s", (channelid, projectid))
+  conn.commit()
 
 def add_user_to_channel(userid: int, channelid: int):
   ''' Gives specified user access to specified channel
@@ -857,7 +876,9 @@ def add_user_to_channel(userid: int, channelid: int):
     userid (int)
     channelid (int)
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("INSERT INTO accesschannels (userid, channelid) VALUES (%s, %s)", (userid, channelid))
+  conn.commit()
 
 def remove_user_from_channel(userid:int, channelid: int):
   ''' Removes a specified user's access to a specified channel
@@ -866,11 +887,13 @@ def remove_user_from_channel(userid:int, channelid: int):
     userid (int)
     channelid (int)
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("DELETE FROM accesschannels WHERE userid = %s AND channelid = %s", (userid, channelid))
+  conn.commit()
 
 #retrieval
 def get_users_channels(userid: int) -> typing.List[Channel_d_base]:
-  ''' Gets all channelids a user has access to
+  ''' Gets all channels a user has access to
   
   Parameters:
     userid (int)
@@ -878,7 +901,34 @@ def get_users_channels(userid: int) -> typing.List[Channel_d_base]:
   Returns:
     [tuple] (channelid, channel_name)
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("""SELECT channels.channelid, channels.channelname FROM users
+               JOIN accesschannels ON accesschannels.userid = users.userid
+               JOIN channels ON channels.channelid = accesschannels.channelid
+               WHERE users.userid = %s""", (userid,))
+  ret = []
+  for rec in curs:
+    ret.append(Channel_d_base(rec[0], rec[1]))
+  return ret
+
+def get_channel_members(channelid: int) -> typing.List[User_d_base]:
+  ''' Gets all members that have access to specified channel
+  
+  Parameters:
+    channelid (int)
+    
+  Returns
+    [tuple] (userid, first_name, last_name)
+  '''
+  curs = conn.cursor()
+  curs.execute("""SELECT users.userid, users.firstName, users.lastName FROM channels
+              JOIN accesschannels ON accesschannels.channelid = channels.channelid
+              JOIN users ON users.userid = accesschannels.userid
+              WHERE channels.channelid = %s""", (channelid,))
+  ret = []
+  for rec in curs:
+    ret.append(User_d_base(rec[0], rec[1], rec[2]))
+  return ret
 
 #-----------------
 # Messages
@@ -893,16 +943,21 @@ def create_message(channelid: int, ownerid: int, timestamp: datetime, content: s
     timestamp (datetime)
     content (string)
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("INSERT INTO messages (channelid, ownerid, created, content) VALUES (%s, %s, %s, %s) RETURNING messageid", (channelid, ownerid, timestamp, content))
+  conn.commit()
+  return curs.fetchone()[0]
 
 def edit_message(messageid: int, content: str):
-  ''' Edits a specified message
+  ''' Edits the content of a specified message
   
   Parameters:
     messageid (int)
     content (string)
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("UPDATE messages SET content = %s WHERE messageid = %s", (content, messageid))
+  conn.commit()
 
 def delete_message(messageid: int):
   ''' Deletes a specified message
@@ -910,28 +965,50 @@ def delete_message(messageid: int):
   Parameters:
     messageid (int)
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("DELETE FROM messages WHERE messageid = %s", (messageid,))
+  conn.commit()
 
 #retrieval
-def get_messages(channelid: int, last_message: int = -1) -> typing.List[Message_d_base]:
+def get_channel_messages(channelid: int, last_message: datetime = None) -> typing.List[Message_d_base]:
   ''' Gets a page of messages given the last message
-      If you get page 1 with ids [100...51], then last_message should be set to 51. 
-      This function should then retrieve [50...1]
-  If no last_message is supplied, gets the last 50 messages sent in a channel
+      Gets 50 messages before the last_message given
+      If no last_message is supplied, gets the latest 50 messages sent in a channel
   
   Paramters:
     channelid (int)
-    last_message (int), the latest message retrieved
+    last_message (datetime), time range to get ids from
     
   Returns:
     [tuple] (messageid, ownerid, timestamp, content)
   '''
-  pass
+  
+  if last_message == None:
+    last_message = datetime.now()
+  curs = conn.cursor()
+  curs.execute("""SELECT messageid, ownerid, created, content FROM messages 
+               WHERE channelid = %s 
+               AND created < %s
+               ORDER BY created DESC
+               LIMIT 50""", (channelid, last_message))
+  ret = []
+  for rec in curs:
+    ret.append(Message_d_base(rec[0], rec[1], rec[2], rec[3]))
+  return ret
 
 def get_latest_message(channelid: int) -> Message_d_base:
   ''' Gets the latest message sent in a channel, useful for real-time-updating when a message is sent
   
   Parameters:
     channelid (int)
+    
+  Returns:
+    tuple (messageid, ownerid, timestamp, content)
   '''
-  pass
+  curs = conn.cursor()
+  curs.execute("""SELECT messageid, ownerid, created, content FROM messages 
+               WHERE channelid = %s 
+               ORDER BY created DESC
+               LIMIT 1""", (channelid,))
+  rec = curs.fetchone()
+  return Message_d_base(rec[0], rec[1], rec[2], rec[3])
