@@ -43,7 +43,8 @@ def auth_register():
     password = request.form['password']
     firstName = request.form['firstName']
     lastName = request.form['lastName']
-    return jsonify(register(email, password, firstName, lastName))
+    role = int(request.form.get('role', default=0))
+    return jsonify(register(email, password, firstName, lastName, role))
 
 @app.route('/group/create', methods=['POST'])
 def create_group_endpoint():
@@ -281,4 +282,4 @@ def view_preference_route():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(debug=True, host='0.0.0.0', port=5097)
