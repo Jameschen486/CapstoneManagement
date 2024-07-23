@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './components/Home';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import Groups from './components/Groups';
+import CreateGroup from './components/CreateGroup';
 
 function App() {
   return (
@@ -13,6 +15,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/" exact element={<Home />} />
+          <Route path="/groups" element={<Groups />} />
+          <Route path="/create-group" element={<CreateGroup />} />
         </Routes>
       </div>
     </Router>
