@@ -92,5 +92,5 @@ CREATE TABLE accesschannels (
   userid        integer REFERENCES users(userid) ON DELETE CASCADE
 );
 
-ALTER TABLE users ADD FOREIGN KEY (groupid) REFERENCES groups(groupid);
+ALTER TABLE users ADD FOREIGN KEY (groupid) REFERENCES groups(groupid) ON DELETE SET NULL;
 
