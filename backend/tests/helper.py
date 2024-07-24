@@ -9,12 +9,17 @@ CLIENT = server.app.test_client()
 
 URL = 'http://localhost:5001'
 
-TABLES = ["channels", "users", "projects", "groups", "grouprequests", "preferences", "notifications", "messages", "accesschannels"]
+TABLES = ["channels", "users", "projects", "groups", "grouprequests", "preferences", "skills", "userskills", "projectskills", "notifications", "messages", "accesschannels"]
 
 ADMIN = {"email": "admin_email", "password": "admin_password", "firstName": "admin_firstName", "lastName": "admin_lastName"} 
 
 USERS = [
     {"email": f"email{i}", "password": f"password{i}", "firstName": f"firstName{i}", "lastName": f"lastName{i}"} 
+    for i in range(10)
+]
+
+SKILLS = [
+    {"skillname": f"skill{i}"} 
     for i in range(10)
 ]
 
@@ -73,5 +78,7 @@ def set_role(user_id:int, role:int = Role.STUDENT):
     dbAcc.update_role(user_id, role)
 
 
-
-
+def create_skill(index:int = 0) -> int:
+    admin_id, admin_token = get_admin()
+    skill_id = CLIENT.post('/skill/create', data = {"userid":admin_id, "skillname":SKILLS[index]["skillname"]}, headers = token2headers(admin_token)).json["skillid"]
+    return skill_id

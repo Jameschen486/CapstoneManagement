@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import jwt_decode from 'jwt-decode';
 import '../css/Home.css';
@@ -27,11 +27,14 @@ const Home = () => {
         // Store the token in localStorage
         localStorage.setItem('token', data.token);
 
-        // Decode the token to get the role
+        // Decode the token to get the role and user ID
         const decodedToken = jwt_decode(data.token);
         const userRole = decodedToken.role;
+        const userId = decodedToken.userid;
         console.log('Decoded role:', userRole);
+        console.log('Decoded userId:', userId);
         localStorage.setItem('role', userRole);
+        localStorage.setItem('userId', userId); 
 
         navigate('/dashboard');
       } else {
@@ -44,15 +47,27 @@ const Home = () => {
     }
   };
 
+  useEffect(() => {
+    const updateBackground = () => {
+      document.body.classList.add('sea-theme');
+    };
+    updateBackground();
+    return () => {
+      document.body.classList.remove('sea-theme');
+    };
+  }, []);
+
   return (
     <div className="home-container">
       <header className="home-header">
-        <h1>Capstone Compass</h1>
+        <h1>
+          <img src="CC_logo.png" alt="logo" className="home-logo" />
+          Capstone Compass
+        </h1>
       </header>
       <div className="home-content">
         <div className="home-info">
-          <img src="sailboat.png" alt="Sailboat" className="home-image" />
-          <p>Capstone Compass guides you through your projects, connecting you with opportunities and collaboration</p>
+          <b>Capstone Compass guides you through your projects, connecting you with opportunities and collaboration</b>
         </div>
         <div className="login-form">
           <form onSubmit={handleLogin}>
@@ -77,6 +92,8 @@ const Home = () => {
             <Link to="/register">Create New Account</Link>
           </button>
         </div>
+        <div className='cloud'></div>
+        <div className='boat'></div>
       </div>
     </div>
   );
