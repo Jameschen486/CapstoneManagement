@@ -83,7 +83,7 @@ CREATE TABLE messages (
   messageid     serial PRIMARY KEY,
   channelid     integer REFERENCES channels(channelid) ON DELETE CASCADE,
   ownerid       integer REFERENCES users(userid) ON DELETE SET NULL,
-  created       timestamp,
+  created       timestamp DEFAULT current_timestamp,
   content       text
 );
 
