@@ -27,8 +27,8 @@ def project_create(userid:int, ownerid:int):
     user = return_user(userid)
     owner = return_user(ownerid)
 
-    if owner["role"] != Role.CLIENT:
-        raise RoleError(description=f"Intended onwer {ownerid} is not a client")
+    if owner["role"] not in [Role.CLIENT, Role.ADMIN]:
+        raise RoleError(description=f"Intended onwer {ownerid} is not a client/admin")
     if (userid != ownerid) and (user["role"] not in [Role.COORDINATOR, Role.ADMIN]):
         raise RoleError(description=f"User {userid} is not an coordinator/admin, can not create project for others")
 
