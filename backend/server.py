@@ -8,6 +8,7 @@ from error import HTTPError
 from projects import Project
 from skills import Skill
 import preference
+import message
 
 app = Flask(__name__)
 CORS(app)
@@ -294,6 +295,43 @@ def view_preference_route():
         role = return_user(user_id)["role"]
         response, status_code = preference.view_preference(user_id, student_id, role)
         return jsonify(response), status_code
+    
+@app.route('/message/send', methods=['POST'])
+def send_message_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    content = data.get('content', default=None, type=str)
+    senderid = data.get('senderid', default=None, type=int)
+    channelid = data.get('channelid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = message.send(userid, content, senderid, channelid)
+        return jsonify(response), status_code
+    
+@app.route('/message/edit', methods=['PUT'])
+def edit_message_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    content = data.get('content', default=None, type=str)
+    msgid = data.get('messageid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = message.edit(userid, msgid, content)
+        return jsonify(response), status_code
+
+@app.route('/message/delete', methods=['DELETE'])
+def delete_message_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    msgid = data.get('messageid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = message.delete(userid, msgid)
+        return jsonify(response), status_code
+
 
 
 if __name__ == "__main__":

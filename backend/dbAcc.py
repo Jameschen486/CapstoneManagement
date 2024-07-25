@@ -27,6 +27,7 @@ Projects_skill_d = namedtuple("Projects_skills_d", ["projectid", "groupcount", "
 Reset_code_d = namedtuple("Reset_code_d", ["userid", "code", "timestamp"])
 User_pref_d = namedtuple("User_pref_d", ["projectid", "rank"])
 Group_pref_d = namedtuple("Group_pref_d", ["groupid", "projectid", "rank"])
+Notif_d_full = namedtuple("Notif_d_base", ["notifid", "userid", "created", "isnew", "content"])
 Notif_d_base = namedtuple("Notif_d_base", ["notifid", "timestamp", "content"])
 Channel_d_base = namedtuple("Channel_d_base", ["channelid", "channel_name"])
 Message_d_base = namedtuple("Message_d_base", ["messageid", "ownerid", "timestamp", "content"])
@@ -781,6 +782,23 @@ def create_notif(userid: int, timestamp: datetime, content: str) -> int:
   curs.execute("INSERT INTO notifications (userid, created, isnew, content) VALUES (%s, %s, %s, %s) RETURNING notifid", (userid, timestamp, True, content))
   conn.commit()
   return curs.fetchone()[0]
+
+def get_notif_by_id(notifid: int) -> Notif_d_full:
+  ''' Queries the database for notif information
+  
+  Parameters:
+    - notifid (integer)
+    
+  Returns:
+    - tuple (notifid, userid, created, isnew, content)
+    - None, if project does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM notifications WHERE notifid = %s", (notifid,))
+  ret = curs.fetchone()
+  if ret == None:
+    return None
+  return Notif_d_full(ret[0], ret[1], ret[2], ret[3], ret[4])
   
 def get_notifs(userid: int) -> typing.List[Notif_d_base]:
   ''' Returns all notifs for a given user
@@ -1002,6 +1020,23 @@ def create_message(channelid: int, ownerid: int, content: str):
   curs.execute("INSERT INTO messages (channelid, ownerid, content) VALUES (%s, %s, %s) RETURNING messageid", (channelid, ownerid, content))
   conn.commit()
   return curs.fetchone()[0]
+
+def get_message_by_id(messageid: int) -> Message_d_base:
+  ''' Queries the database for message information
+  
+  Parameters:
+    - messageid (integer)
+    
+  Returns:
+    - tuple (messageid, ownerid, timestamp, content)
+    - None, if project does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT messageid, ownerid, created, content FROM messages WHERE messageid = %s", (messageid,))
+  ret = curs.fetchone()
+  if ret == None:
+    return None
+  return Message_d_base(ret[0], ret[1], ret[2], ret[3])
 
 def edit_message(messageid: int, content: str):
   ''' Edits the content of a specified message

@@ -25,7 +25,7 @@ def test_create_1():
         json["title"] == "project_title" and
         json["clients"] == None and
         json["specializations"] == None and
-        json["groupcount"] == "0" and          # to be fixed
+        json["groupcount"] == "0" and         
         json["background"] == None and
         json["requirements"] == None and
         json["reqknowledge"] == None and

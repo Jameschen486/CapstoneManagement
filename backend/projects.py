@@ -92,8 +92,8 @@ class Project:
 
         projects = Project.load_all()
 
-        user = return_user(userid)
-        if user["role"] == permission.Role.CLIENT:
+        user = dbAcc.get_user_by_id(userid)
+        if user.role == permission.Role.CLIENT:
             projects = {k: v for k, v in projects.items() if v.ownerid == userid}
 
         projects = {k: vars(v) for k, v in projects.items()}
@@ -139,14 +139,14 @@ class Project:
             title,
             clients=data.get('clients', default=old_project.clients),
             specializations=data.get('specializations', default=old_project.specializations),
-            groupcount=data.get('groupcount', default=old_project.groupcount, type=int),
+            groupcount=data.get('groupcount', default=old_project.groupcount, type=str),
             background=data.get('background', default=old_project.background),
             requirements=data.get('requirements', default=old_project.requirements),
             reqknowledge=data.get('reqknowledge', default=old_project.reqknowledge),
             outcomes=data.get('outcomes', default=old_project.outcomes),
             supervision=data.get('supervision', default=old_project.supervision),
             additional=data.get('additional', default=old_project.additional),
-            channel=data.get('channel', default=old_project.channel, type=int),
+            channel=old_project.channel,
         )
 
 
