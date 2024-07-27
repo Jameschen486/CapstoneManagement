@@ -136,8 +136,7 @@ def test_group_add_get_remove_users():
   assert (newgroupid, "newgroup", 1) in given
   clear_users()
   clear_groups()
-  
-  
+    
 grp_d = [0, "groupname", 0]
 def test_join_requests():
   use_d2 = [0, "Email@provider.com", "us", "now", "password", 1]
@@ -165,7 +164,6 @@ def test_join_requests():
   clear_groups()
   clear_grouprequests()
   
-own_d = [0, "group@owner.com", "group", "owner", "password", 1]
 def test_projects():
   own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], own_d[3], own_d[5])
   pd = [0, own_d[0], "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", None]
@@ -188,6 +186,8 @@ def test_projects():
   assert ret == []
   clear_users()
   clear_projects()
+  
+
   
 def test_skills():
   skl_d1 = [0, "python"]
@@ -249,7 +249,9 @@ use_d0 = [0, "Email@provider.com", "me", "them", "password", 1]
 use_d1 = [0, "Email@provider.com", "me", "them", "password", 1]
 use_d2 = [0, "Email@provider.com", "me", "them", "password", 1]
 use_d3 = [0, "Email@provider.com", "me", "them", "password", 1]
-use_d4 = [0, "Email@provider.com", "me", "them", "password", 1]
+use_d4 = [0, "Email@provider.com", "me", "them", "password", 1]  
+own_d = [0, "group@owner.com", "group", "owner", "password", 1]
+
 def test_preferences():
   use_d0[0] = dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
   use_d1[0] = dbAcc.create_user(use_d1[1], use_d1[4], use_d1[2], use_d1[3], use_d1[5])
@@ -536,3 +538,71 @@ def test_messages():
 
   clear_users()
   clear_channels()
+  
+def test_auto_assign_channels():
+  use_d0[0] = dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
+  use_d1[0] = dbAcc.create_user(use_d1[1], use_d1[4], use_d1[2], use_d1[3], use_d1[5])
+  use_d2[0] = dbAcc.create_user(use_d2[1], use_d2[4], use_d2[2], use_d2[3], use_d2[5])
+  use_d3[0] = dbAcc.create_user(use_d3[1], use_d3[4], use_d3[2], use_d3[3], use_d3[5])
+  use_d4[0] = dbAcc.create_user(use_d4[1], use_d4[4], use_d4[2], use_d4[3], use_d4[5])
+  
+  grp_d[0] = dbAcc.create_group(use_d[0], grp_d[1])
+  dbAcc.add_user_to_group(use_d1[0], grp_d[0])
+  dbAcc.add_user_to_group(use_d2[0], grp_d[0])
+  dbAcc.add_user_to_group(use_d3[0], grp_d[0])
+  dbAcc.add_user_to_group(use_d4[0], grp_d[0])
+  
+  given_grp = dbAcc.get_group_by_id(grp_d[0])
+  given = dbAcc.get_channel_members(given_grp.channel)
+  assert (use_d0[0], use_d0[2], use_d0[3]) in given
+  assert (use_d1[0], use_d1[2], use_d1[3]) in given
+  assert (use_d2[0], use_d2[2], use_d2[3]) in given
+  assert (use_d3[0], use_d3[2], use_d3[3]) in given
+  assert (use_d4[0], use_d4[2], use_d4[3]) in given
+  
+  own_d[0] = dbAcc.create_user(own_d[1], own_d[4], own_d[2], own_d[3], own_d[5])  
+  pd = [0, own_d[0], "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", 0]
+  pd[0] = dbAcc.create_project(own_d[0], pd[2], pd[3], pd[4], pd[5], pd[6], pd[7], pd[8], pd[9], pd[10], pd[11])
+  given_prj = dbAcc.get_project_by_id(pd[0])
+  given = dbAcc.get_channel_members(given_prj.channel)
+  assert (own_d[0], own_d[2], own_d[3]) in given
+  
+  dbAcc.assign_project_to_group(pd[0], grp_d[0])
+  given_grp = dbAcc.get_group_by_id(grp_d[0])
+  assert given_grp.project == pd[0] 
+  given = dbAcc.get_channel_members(given_prj.channel)
+  assert (use_d0[0], use_d0[2], use_d0[3]) in given
+  assert (use_d1[0], use_d1[2], use_d1[3]) in given
+  assert (use_d2[0], use_d2[2], use_d2[3]) in given
+  assert (use_d3[0], use_d3[2], use_d3[3]) in given
+  assert (use_d4[0], use_d4[2], use_d4[3]) in given
+  
+  dbAcc.unassign_project_from_group(grp_d[0])
+  given_grp = dbAcc.get_group_by_id(grp_d[0])
+  assert given_grp.project == None
+  given = dbAcc.get_channel_members(given_prj.channel)
+  assert (own_d[0], own_d[2], own_d[3]) in given
+  dbAcc.assign_project_to_group(pd[0], grp_d[0])
+  
+  dbAcc.delete_project_by_id(pd[0])
+  given = dbAcc.get_channel_members(given_prj.channel)
+  assert given == []
+  
+  dbAcc.remove_user_from_group(use_d4[0])
+  given = dbAcc.get_channel_members(given_grp.channel)
+  assert (use_d0[0], use_d0[2], use_d0[3]) in given
+  assert (use_d1[0], use_d1[2], use_d1[3]) in given
+  assert (use_d2[0], use_d2[2], use_d2[3]) in given
+  assert (use_d3[0], use_d3[2], use_d3[3]) in given
+  assert (use_d4[0], use_d4[2], use_d4[3]) not in given
+  
+  dbAcc.delete_group(grp_d[0])
+  given = dbAcc.get_channel_members(given_grp.channel)
+  assert given == []
+  
+  clear_users()
+  clear_groups()
+  clear_projects()
+  clear_channels()
+  
+  

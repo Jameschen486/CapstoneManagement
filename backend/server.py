@@ -8,6 +8,7 @@ from error import HTTPError
 from projects import Project
 from skills import Skill
 import preference
+import permission
 import message, channel
 
 app = Flask(__name__)
@@ -20,6 +21,10 @@ CORS(app)
 # mysql.init_app(app)
 
 MAX_STUDENT_PER_GROUP = 6
+
+def make_res_code(res, code):
+  ret_res = {"message": res}
+  return jsonify(res), code
 
 # ERROR HANDLER
 @app.errorhandler(HTTPError)
@@ -123,6 +128,72 @@ def leave_group_route():
     if auth_id(token, user_id): 
         response, status_code = groups.leave_group(user_id)
         return jsonify(response), status_code
+      
+@app.route('/group/assign_project', methods=['PUT'])
+def group_assign_project_route():
+  """ Assigns project to group
+  
+  Form data:
+    groupid (int)
+    projectid (int)
+    
+  Responses:
+    200, ok / project already assigned
+    400, invalid groupid or projectid
+    401, No token given
+    403, Not enough permissions
+    500, likely failed sql transaction
+  """
+  tok = request.authorization
+  if tok == None:
+    return make_res_code("No token given", 401)
+  data = request.form
+  try:
+    gid = int(data.get('groupid'))
+  except ValueError:
+    return make_res_code("Malformed input, groupid not int", 400)
+  
+  try:
+    pid = int(data.get('projectid'))
+  except ValueError:
+    return make_res_code("Malformed input, project not int", 400)
+  
+  try: 
+    auth_role(tok, permission.Role.ADMIN, permission.Role.COORDINATOR)
+  except:
+    return make_res_code("Insufficient permissions", 403)
+  res, status_code = groups.assign_project(gid, pid)
+  return jsonify(res), status_code
+    
+@app.route('/group/unassign_project', methods=['PUT'])
+def group_unassign_project_route():
+  """ Unassigns project from group
+  
+  Form data:
+    groupid (int)
+  
+  Responses:
+    200, ok / no project assigned
+    400, Invalid groupid
+    403, Not enough permissions
+    500, likely failed sql transaction
+  """
+  tok = request.authorization
+  if tok == None:
+    return make_res_code("No token given", 401)
+  data = request.form
+  
+  try:
+    gid = int(data.get('groupid'))
+  except ValueError:
+    return make_res_code("Malformed input, groupid not int", 400)
+  
+  try:
+    auth_role(tok, permission.Role.ADMIN, permission.Role.COORDINATOR)
+  except:
+    return make_res_code("Insufficient permissions", 403)
+  res, status_code = groups.unassign_project(gid)
+  return jsonify(res), status_code
     
 @app.get('/user')
 def get_user():

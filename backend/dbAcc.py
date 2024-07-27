@@ -418,7 +418,6 @@ def get_all_projects() -> typing.List[Proj_d_full]:
   for rec in curs:
     ret_list.append(Proj_d_full(rec[0], rec[1], rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], rec[10], rec[11], rec[12]))
   return ret_list
-  
 
 def update_project(projectid: int, ownerid: int, title: str, clients: str, specializations:str, 
                    groupcount: str, background: str, requirements: str, 
@@ -470,6 +469,38 @@ def delete_project_by_id(projectid: int):
                AND channels.channelid = projects.channel; 
                DELETE FROM projects WHERE projectid = %s""", (projectid, projectid))
   conn.commit()
+  
+def assign_project_to_group(projectid: int, groupid: int):
+  ''' Assigns a project to a group
+      also adds group members to projects channel
+  '''
+  curs = conn.cursor()
+  curs.execute("""WITH proj AS (SELECT channel FROM projects WHERE projectid = %s)
+                  UPDATE groups SET assign = %s WHERE groupid = %s RETURNING (SELECT channel FROM proj)""", (projectid, projectid, groupid))
+  conn.commit()
+  ch_id = curs.fetchone()[0]
+  usr_d_l = get_group_members(groupid)
+  usr_id_l = [x.userid for x in usr_d_l]
+  add_users_to_channel(usr_id_l, ch_id)
+  
+def unassign_project_from_group(groupid: int):
+  ''' Unassigns a groups assigned project
+  
+  Paramters: 
+    groupid (int)
+  '''
+  curs = conn.cursor()
+  curs.execute("""WITH proj AS (
+                  SELECT projects.channel FROM groups 
+                  JOIN projects ON projects.projectid = groups.assign
+                  WHERE groupid = %s)
+                UPDATE groups SET assign = %s 
+                WHERE groupid = %s RETURNING (SELECT channel FROM proj)""", (groupid, None, groupid))
+  conn.commit()
+  ch_id = curs.fetchone()[0]
+  usr_d_l = get_group_members(groupid)
+  usr_id_l = [x.userid for x in usr_d_l]
+  remove_users_from_channel(usr_id_l, ch_id)
   
 #------------------------
 # Skills
@@ -935,6 +966,19 @@ def add_user_to_channel(userid: int, channelid: int):
   curs.execute("INSERT INTO accesschannels (userid, channelid) VALUES (%s, %s)", (userid, channelid))
   conn.commit()
 
+def add_users_to_channel(userids: typing.List[int], channelid: int):
+  ''' adds multiple users to a given channel
+      slightly faster than performing multiple calls to add_user_to_channel
+      
+  Paramters:
+    - userids ([int])
+    - channelid (int)
+  '''
+  vals = [(x, channelid) for x in userids]
+  curs = conn.cursor()
+  psycopg2.extras.execute_values(curs, "INSERT INTO accesschannels (userid, channelid) VALUES %s", vals)
+  conn.commit()
+
 def remove_user_from_channel(userid:int, channelid: int):
   ''' Removes a specified user's access to a specified channel
   
@@ -949,6 +993,18 @@ def remove_user_from_channel(userid:int, channelid: int):
   curs.execute("DELETE FROM accesschannels WHERE userid = %s AND channelid = %s", (userid, channelid))
   conn.commit()
 
+def remove_users_from_channel(userids: typing.List[int], channelid: int):
+  ''' Removes multiple users from a channel 
+      should be faster than running multiple remove user
+      
+  Paramters:
+    userids ([int])
+    channelid (int)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM accesschannels WHERE userid IN %s AND channelid = %s", (tuple(userids), channelid))
+  conn.commit()
+  
 #retrieval
 def get_users_channels(userid: int) -> typing.List[Channel_d_base]:
   ''' Gets all channels a user has access to

@@ -27,9 +27,9 @@ def project_create(userid:int, ownerid:int):
     user = dbAcc.get_user_by_id(userid)
     owner = dbAcc.get_user_by_id(ownerid)
 
-    if owner.role != Role.CLIENT:
-        raise RoleError(description=f"Intended onwer {ownerid} is not a client")
-    if (userid != ownerid) and (user.role not in [Role.COORDINATOR, Role.ADMIN]):
+    if owner.role not in [Role.CLIENT, Role.ADMIN]:
+        raise RoleError(description=f"Intended onwer {ownerid} is not a client/admin")
+    if (userid != ownerid) and (user["role"] not in [Role.COORDINATOR, Role.ADMIN]):
         raise RoleError(description=f"User {userid} is not an coordinator/admin, can not create project for others")
 
 

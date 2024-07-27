@@ -133,12 +133,10 @@ def test_permission_create():
             response = client.post('/project/create', data = {"userid":user_id, "ownerid":owner_id, "title":f"project_title({i},{j})"}, headers = helper.token2headers(tokens[i]))
 
             if (
-                # can not create project for non-client user
-                owner_id not in [client_id0, client_id1] or
-                # client can not create project for other clients
-                {user_id, owner_id} == {client_id0, client_id1} or
-                # user_id belongs to student or tutor
-                user_id in [student_id, tutor_id]
+                # can only create project for client/admin
+                owner_id not in [client_id0, client_id1, admin_id] or
+                # client can not create project for others, coordinator and admin can
+                ((user_id != owner_id) and (user_id not in [coordinator_id, admin_id]))
             ):
                 assert response.status_code == 403
             else:
