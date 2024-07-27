@@ -577,6 +577,13 @@ def test_auto_assign_channels():
   assert (use_d3[0], use_d3[2], use_d3[3]) in given
   assert (use_d4[0], use_d4[2], use_d4[3]) in given
   
+  dbAcc.unassign_project_from_group(grp_d[0])
+  given_grp = dbAcc.get_group_by_id(grp_d[0])
+  assert given_grp.project == None
+  given = dbAcc.get_channel_members(given_prj.channel)
+  assert (own_d[0], own_d[2], own_d[3]) in given
+  dbAcc.assign_project_to_group(pd[0], grp_d[0])
+  
   dbAcc.delete_project_by_id(pd[0])
   given = dbAcc.get_channel_members(given_prj.channel)
   assert given == []
