@@ -482,6 +482,25 @@ def assign_project_to_group(projectid: int, groupid: int):
   usr_id_l = [x.userid for x in usr_d_l]
   add_users_to_channel(usr_id_l, ch_id)
   
+def unassign_project_from_group(groupid: int):
+  ''' Unassigns a groups assigned project
+  
+  Paramters: 
+    groupid (int)
+  '''
+  curs = conn.cursor()
+  curs.execute("""WITH proj AS (
+                  SELECT projects.channel FROM groups 
+                  JOIN projects ON projects.projectid = groups.assign
+                  WHERE groupid = %s)
+                UPDATE groups SET assign = %s 
+                WHERE groupid = %s RETURNING (SELECT channel FROM proj)""", (groupid, None, groupid))
+  conn.commit()
+  ch_id = curs.fetchone()[0]
+  usr_d_l = get_group_members(groupid)
+  usr_id_l = [x.userid for x in usr_d_l]
+  remove_users_from_channel(usr_id_l, ch_id)
+  
 #------------------------
 # Skills
 
@@ -956,6 +975,18 @@ def remove_user_from_channel(userid:int, channelid: int):
   curs.execute("DELETE FROM accesschannels WHERE userid = %s AND channelid = %s", (userid, channelid))
   conn.commit()
 
+def remove_users_from_channel(userids: typing.List[int], channelid: int):
+  ''' Removes multiple users from a channel 
+      should be faster than running multiple remove user
+      
+  Paramters:
+    userids ([int])
+    channelid (int)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM accesschannels WHERE userid IN %s AND channelid = %s", (tuple(userids), channelid))
+  conn.commit()
+  
 #retrieval
 def get_users_channels(userid: int) -> typing.List[Channel_d_base]:
   ''' Gets all channels a user has access to
