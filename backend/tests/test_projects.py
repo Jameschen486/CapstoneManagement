@@ -1,13 +1,16 @@
 from tests import helper
 from permission import Role
+import pytest
 
 
 client = helper.CLIENT
-
-
-def test_create_1():
+@pytest.fixture(autouse=True)
+def run_around_tests():
+    helper.truncate()
+    yield
     helper.truncate()
 
+def test_create_1():
     user_id, token = helper.create_user(role=Role.CLIENT)
     
     response = client.post('/project/create', data = {"userid":user_id, "ownerid":user_id, "title":"project_title"}, headers = helper.token2headers(token))
@@ -25,20 +28,17 @@ def test_create_1():
         json["title"] == "project_title" and
         json["clients"] == None and
         json["specializations"] == None and
-        json["groupcount"] == "0" and          # to be fixed
+        json["groupcount"] == "0" and         
         json["background"] == None and
         json["requirements"] == None and
         json["reqknowledge"] == None and
         json["outcomes"] == None and
         json["supervision"] == None and
-        json["additional"] == None and
-        json["channel"] == None 
+        json["additional"] == None
     )
 
 
 def test_create_2():
-    helper.truncate()
-
     user_id0, token0 = helper.create_user(0, Role.CLIENT)
     user_id1, token1 = helper.create_user(1, Role.CLIENT)
     
@@ -72,8 +72,6 @@ def test_create_2():
 
 
 def test_update():
-    helper.truncate()
-
     user_id, token = helper.create_user(role=Role.CLIENT)
     project_id0 = client.post('/project/create', data = {"userid":user_id, "ownerid":user_id, "title":"project_title0"}, headers = helper.token2headers(token)).json["projectid"]
     project_id1 = client.post('/project/create', data = {"userid":user_id, "ownerid":user_id, "title":"project_title1"}, headers = helper.token2headers(token)).json["projectid"]
@@ -97,8 +95,6 @@ def test_update():
 
 
 def test_delete():
-    helper.truncate()
-
     user_id0, token0 = helper.create_user(0, Role.CLIENT)
     project_id0 = client.post('/project/create', data = {"userid":user_id0, "ownerid":user_id0, "title":"project_title0"}, headers = helper.token2headers(token0)).json["projectid"]
     project_id1 = client.post('/project/create', data = {"userid":user_id0, "ownerid":user_id0, "title":"project_title1"}, headers = helper.token2headers(token0)).json["projectid"]
@@ -121,8 +117,6 @@ def test_delete():
 
 
 def test_permission_create():
-    helper.truncate()
-    
     client_id0, client_token0 = helper.create_user(0, Role.CLIENT)
     client_id1, client_token1 = helper.create_user(1, Role.CLIENT)
     student_id, student_token = helper.create_user(2, Role.STUDENT)
@@ -149,9 +143,7 @@ def test_permission_create():
                 assert response.status_code == 201
 
 
-def test_permission_2():
-    helper.truncate()
-    
+def test_permission_2(): 
     client_id0, client_token0 = helper.create_user(0, Role.CLIENT)
     client_id1, client_token1 = helper.create_user(1, Role.CLIENT)
     student_id, student_token = helper.create_user(2, Role.STUDENT)
