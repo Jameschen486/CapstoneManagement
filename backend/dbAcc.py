@@ -979,7 +979,7 @@ def get_all_channels() -> typing.List[Channel_d_base]:
   curs.execute("SELECT channelid, channelname FROM channels")
   ret = []
   for rec in curs:
-    ret.append(rec[0], rec[1])
+    ret.append(Channel_d_base(rec[0], rec[1]))
   return ret
 
 def get_channel_members(channelid: int) -> typing.List[User_d_base]:

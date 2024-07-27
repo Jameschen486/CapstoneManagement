@@ -8,7 +8,7 @@ from error import HTTPError
 from projects import Project
 from skills import Skill
 import preference
-import message
+import message, channel
 
 app = Flask(__name__)
 CORS(app)
@@ -296,6 +296,40 @@ def view_preference_route():
         response, status_code = preference.view_preference(user_id, student_id, role)
         return jsonify(response), status_code
     
+@app.route('/group/channel', methods=['GET'])
+def get_group_channel():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    groupid = data.get('groupid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.get_group_channelid(userid, groupid)
+        return jsonify(response), status_code
+    
+@app.route('/project/channel', methods=['GET'])
+def get_project_channel():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    projectid = data.get('projectid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.get_project_channelid(userid, projectid)
+        return jsonify(response), status_code
+
+@app.route('/channel/messages', methods=['GET'])
+def get_channel_messages():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    channelid = data.get('channelid', default=None, type=int)
+    last_message = data.get('last_message', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.view_message(userid, channelid, last_message)
+        return jsonify(response), status_code
+
 @app.route('/message/send', methods=['POST'])
 def send_message_route():
     token = request.authorization
@@ -331,6 +365,8 @@ def delete_message_route():
     if auth_id(token, userid): 
         response, status_code = message.delete(userid, msgid)
         return jsonify(response), status_code
+
+
 
 
 

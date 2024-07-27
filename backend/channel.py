@@ -1,24 +1,18 @@
-"""
-Functions here are consequence of other action,
-do not check for input/access error
-"""
-
-
-import dbAcc, load, permission
+import dbAcc, load, permission, message
 
 def get_group_channelid(userid:int, groupid:int):
     load.user(userid)
     group = load.group(groupid)
     permission.get_group_channel(userid, groupid)
 
-    return group.channel
+    return {"channelid": group.channel}, 200
 
 def get_project_channelid(userid:int, projectid:int):
     load.user(userid)
     project = load.project(projectid)
     permission.get_project_channel(userid, projectid)
 
-    return project.channel
+    return {"channelid": project.channel}, 200
 
 def manual_join(userid:int, targetid:int, channelid:int):
     load.user(userid)
@@ -36,6 +30,16 @@ def manual_leave(userid:int, targetid:int, channelid:int):
     permission.manual_io_channel(userid)
 
     leave(targetid, channelid)
+
+
+def view_message(userid:int, channelid:int, last_message:int = None):
+    load.user(userid)
+    load.channel(channelid)
+    permission.view_channel_message(userid, channelid)
+
+    msgs = dbAcc.get_channel_messages(channelid, last_message)
+    
+    return {"messages": message.format(msgs)}, 200
 
 
 ################################################################

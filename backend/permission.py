@@ -148,8 +148,8 @@ def set_message(userid:int, msgid:int):
     msg = dbAcc.get_message_by_id(msgid)
     senderid = msg.ownerid
 
-    if (userid != senderid) and (user.role != Role.ADMIN):
-        raise RoleError(description=f"User {userid} is not an admin, can not set message on the behalf of others {senderid}")
+    if (userid != senderid) and (user.role not in [Role.COORDINATOR, Role.ADMIN]):
+        raise RoleError(description=f"User {userid} is not an coordinator/admin, can not set message on the behalf of others {senderid}")
     
 
 def view_channel_message(userid:int, channelid: int):

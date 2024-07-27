@@ -1,13 +1,15 @@
 from tests import helper
 from permission import Role
-
+import pytest
 
 client = helper.CLIENT
-
+@pytest.fixture(autouse=True)
+def run_around_tests():
+    helper.truncate()
+    yield
+    helper.truncate()
 
 def test_create_1():
-    helper.truncate()
-    
     user_id, token = helper.create_user(role=Role.COORDINATOR)
     
     response = client.post('/skill/create', data = {"userid":user_id, "skillname":"skill_name"}, headers = helper.token2headers(token))
@@ -26,8 +28,6 @@ def test_create_1():
 
 
 def test_create_2():
-    helper.truncate()
-
     admin_id, admin_token = helper.get_admin()
     coordinator_id, coordinator_token = helper.create_user(0, Role.COORDINATOR)
     student_id, student_token = helper.create_user(1, Role.STUDENT)
@@ -59,7 +59,6 @@ def test_create_2():
 
 
 def test_student():
-    helper.truncate()
     skill_id0 = helper.create_skill(0)
     skill_id1 = helper.create_skill(1)
     student_id, student_token = helper.create_user(0, Role.STUDENT)
@@ -86,7 +85,6 @@ def test_student():
 
 
 def test_project():
-    helper.truncate()
     client_id, client_token = helper.create_user(1, Role.CLIENT)
     coordinator_id, coordinator_token = helper.create_user(4, Role.COORDINATOR)
     admin_id, admin_token = helper.get_admin()
@@ -102,8 +100,6 @@ def test_project():
 
 
 def test_role():
-    helper.truncate()
-
     client_id0, client_token0 = helper.create_user(0, Role.CLIENT)
     client_id1, client_token1 = helper.create_user(1, Role.CLIENT)
     student_id, student_token = helper.create_user(2, Role.STUDENT)
