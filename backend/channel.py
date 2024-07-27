@@ -1,4 +1,5 @@
 import dbAcc, load, permission, message
+from error import InputError
 
 def get_group_channelid(userid:int, groupid:int):
     load.user(userid)
@@ -14,30 +15,40 @@ def get_project_channelid(userid:int, projectid:int):
 
     return {"channelid": project.channel}, 200
 
-def manual_join(userid:int, targetid:int, channelid:int):
+def get_users_channels(userid:int, target_userid:int):
     load.user(userid)
-    load.user(targetid)
+    load.user(target_userid)
+    permission.get_users_channel(userid, target_userid)
+
+    channels = dbAcc.get_users_channels(target_userid)
+    channels = [channel._asdict() for channel in channels]
+    return {"channels": channels}, 200
+
+def manual_io(userid:int, target_userid:int, channelid:int, io:str = None):
+    load.user(userid)
+    load.user(target_userid)
     load.channel(channelid)
     permission.manual_io_channel(userid)
 
-    join(targetid, channelid)
+    if io == "join":
+        succeed = join(target_userid, channelid)
+    elif io == "leave":
+        succeed = leave(target_userid, channelid)
+    else:
+        raise InputError(description=r"please specify field {io} as join or leave")
+
+    return {"succeed": succeed}, 200
 
 
-def manual_leave(userid:int, targetid:int, channelid:int):
-    load.user(userid)
-    load.user(targetid)
-    load.channel(channelid)
-    permission.manual_io_channel(userid)
-
-    leave(targetid, channelid)
-
-
-def view_message(userid:int, channelid:int, last_message:int = None):
+def view_message(userid:int, channelid:int, last_message:int = None, latest_message:bool = False):
     load.user(userid)
     load.channel(channelid)
     permission.view_channel_message(userid, channelid)
 
-    msgs = dbAcc.get_channel_messages(channelid, last_message)
+    if latest_message:
+        msgs = [dbAcc.get_latest_message(channelid)]
+    else:
+        msgs = dbAcc.get_channel_messages(channelid, last_message)
     
     return {"messages": message.format(msgs)}, 200
 
@@ -74,44 +85,7 @@ def leave(userid:int, channelid:int):
 #def create_project(projectid):
 #    pass
 
-def join_group(groupid:int, userid:int):
-    group = dbAcc.get_group_by_id(groupid)
-    group_channelid = group.channel
-    join(userid, group_channelid)
 
-    project = dbAcc.get_project_by_id(group.project)
-    project_channelid = project.channel
-    join(userid, project_channelid)
-
-
-def leave_group(groupid:int, userid:int):
-    group = dbAcc.get_group_by_id(groupid)
-    group_channelid = group.channel
-    leave(userid, group_channelid)
-
-    project = dbAcc.get_project_by_id(group.project)
-    project_channelid = project.channel
-    leave(userid, project_channelid)
-
-
-def assign_project(projectid:int, groupid:int):
-    # assumed groups have no duplicate members
-
-    project_channelid = dbAcc.get_project_by_id(projectid).channel
-    group_members = dbAcc.get_group_members(groupid)
-    
-    for member in group_members:
-        join(member.userid, project_channelid)
-
-
-def unassign_project(projectid:int, groupid:int):
-    # assumed groups have no duplicate members
-
-    project_channelid = dbAcc.get_project_by_id(projectid).channel
-    group_members = dbAcc.get_group_members(groupid)
-
-    for member in group_members:
-        leave(member.userid, project_channelid)
 
 
 

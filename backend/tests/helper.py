@@ -110,9 +110,11 @@ def create_project(creator_id:int, creator_token:str, title:int = 0, group_ids:l
     if type(title) is int:
         title = PORJECT_NAMES[title]
 
-    project_id = CLIENT.post('/porject/create', data = {"userid": creator_id, "ownerid":creator_id, "title":title}, headers = token2headers(creator_token)).json["projectid"]
+    project_id = CLIENT.post('/project/create', data = {"userid": creator_id, "ownerid":creator_id, "title":title}, headers = token2headers(creator_token)).json["projectid"]
 
-    # TODO: assign project to groups
+    admin_id, admin_token = get_admin()
+    for group_id in group_ids:
+        CLIENT.put('/group/assign_project', data = {"groupid":group_id, "projectid":project_id}, headers=token2headers(admin_token))
 
     channel_id = CLIENT.get('/project/channel', data = {"projectid":project_id, "userid":creator_id}, headers = token2headers(creator_token)).json["channelid"]
 
@@ -124,6 +126,12 @@ def join_group(creator_id:int, creator_token:int, member_id:int, member_token:in
     CLIENT.post('/group/request/handle', data = {"userid": creator_id, "applicantid": member_id, "groupid": group_id, "accept": True}, headers = token2headers(creator_token))
 
 
-def view_message(channel_id:int, last_msg_id:int = None) -> list:
+def view_message(channel_id:int, last_msg_id:int = None, latest_message:bool = False) -> list:
     id, token = get_admin()
-    return CLIENT.get('/channel/messages', data = {"userid":id, "channelid": channel_id}, headers = token2headers(token)).json["messages"]
+    return CLIENT.get('/channel/messages', data = {"userid":id, "channelid": channel_id, "last_message": last_msg_id, "latest_message": latest_message}, headers = token2headers(token)).json["messages"]
+
+
+def users_channel_ids(user_id:int, user_token:int):
+    channels = CLIENT.get('/users/channels', data = {"userid":user_id, "target_userid":user_id}, headers = token2headers(user_token)).json["channels"]
+    channel_ids = [channel["channelid"] for channel in channels]
+    return channel_ids

@@ -29,7 +29,7 @@ def project_create(userid:int, ownerid:int):
 
     if owner.role not in [Role.CLIENT, Role.ADMIN]:
         raise RoleError(description=f"Intended onwer {ownerid} is not a client/admin")
-    if (userid != ownerid) and (user["role"] not in [Role.COORDINATOR, Role.ADMIN]):
+    if (userid != ownerid) and (user.role not in [Role.COORDINATOR, Role.ADMIN]):
         raise RoleError(description=f"User {userid} is not an coordinator/admin, can not create project for others")
 
 
@@ -116,8 +116,14 @@ def get_group_channel(userid:int, groupid:int):
 def get_project_channel(userid:int, projectid:int):
     user = dbAcc.get_user_by_id(userid)
     group = dbAcc.get_group_by_id(user.groupid)
-    if (group.project != projectid) and (user.role not in [Role.TUTOR, Role.COORDINATOR, Role.ADMIN]):
+    project = dbAcc.get_project_by_id(projectid)
+    if (project.owner_id != userid) and (group.project != projectid) and (user.role not in [Role.TUTOR, Role.COORDINATOR, Role.ADMIN]):
         raise RoleError(description=f"User {userid} is not in the project {projectid} nor an tutor/coordinator/admin, can not get the group channel")
+
+def get_users_channel(userid:int, target_userid:int):
+    user = dbAcc.get_user_by_id(userid)
+    if (userid != target_userid) and (user.role not in [Role.COORDINATOR, Role.ADMIN]):
+        raise RoleError(description=f"User {userid} is not an coordinator/admin, can not get others channels")
 
 
 def manual_io_channel(adminid:int):

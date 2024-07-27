@@ -367,6 +367,19 @@ def view_preference_route():
         response, status_code = preference.view_preference(user_id, student_id, role)
         return jsonify(response), status_code
     
+@app.route('/channel/io', methods=['PUT'])
+def channel_manual_io():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    target_userid = data.get('target_userid', default=None, type=int)
+    channelid = data.get('channelid', default=None, type=int)
+    io = data.get('io', default=None, type=str)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.manual_io(userid, target_userid, channelid, io)
+        return jsonify(response), status_code
+
 @app.route('/group/channel', methods=['GET'])
 def get_group_channel():
     token = request.authorization
@@ -389,6 +402,22 @@ def get_project_channel():
         response, status_code = channel.get_project_channelid(userid, projectid)
         return jsonify(response), status_code
 
+@app.route('/users/channels', methods=['GET'])
+def get_users_channel():
+    """
+    Warning: 
+    get_users_channel() includes a channel -> user has access to that channel
+    user has access to a channel !-> get_users_channel() includes that channel (e.g. TUTOR can access all channels)
+    """
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    target_userid = data.get('target_userid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.get_users_channels(userid, target_userid)
+        return jsonify(response), status_code
+
 @app.route('/channel/messages', methods=['GET'])
 def get_channel_messages():
     token = request.authorization
@@ -396,9 +425,10 @@ def get_channel_messages():
     userid = int(data['userid'])
     channelid = data.get('channelid', default=None, type=int)
     last_message = data.get('last_message', default=None, type=int)
+    latest_message = data.get('latest_message', default=False, type=bool)
     
     if auth_id(token, userid): 
-        response, status_code = channel.view_message(userid, channelid, last_message)
+        response, status_code = channel.view_message(userid, channelid, last_message, latest_message)
         return jsonify(response), status_code
 
 @app.route('/message/send', methods=['POST'])

@@ -55,12 +55,12 @@ def test_send_2():
     response = client.get('/channel/messages', data = {"userid":user_id2, "channelid": channel_id}, headers = helper.token2headers(token2))
     assert response.status_code == 403
     helper.join_group(user_id0, token0, user_id2, token2, group_id)
-    response = client.get('/channel/messages', data = {"userid":user_id2, "channelid": channel_id}, headers = helper.token2headers(token2))
+    response = client.get('/channel/messages', data = {"userid":user_id2, "channelid": channel_id, "latest_message":True}, headers = helper.token2headers(token2))
     assert response.status_code == 200
     msgs = response.json["messages"]
-    assert len(msgs) == 2
+    assert len(msgs) == 1
     assert msgs[0]["content"] == "content_str1"
-    assert msgs[1]["content"] == "content_str0"
+
 
 
 def test_edit():
@@ -124,6 +124,69 @@ def test_delete():
     #response = client.delete('/message/delete', data = {"userid": user_id0, "messageid": msg_id0}, headers = helper.token2headers(token0))
     #assert response.status_code == 200
     #assert len(helper.view_message(channel_id)) == 0
+
+
+def test_project():
+    admin_id, admin_token = helper.get_admin()
+    student_id0, student_token0 = helper.create_user(0)
+    student_id1, student_token1 = helper.create_user(1)
+    student_id2, student_token2 = helper.create_user(2)
+    client_id, client_token = helper.create_user(3, role=Role.CLIENT)
+    
+
+    group_id0, channel_id0 = helper.create_group(student_id0, student_token0, group_name=0)
+    group_id1, channel_id1 = helper.create_group(student_id1, student_token1, group_name=1, member_indexs=[2])
+    project_id, project_channel_id = helper.create_project(client_id, client_token, group_ids=[group_id0, group_id1])
+
+    group_msg_id = client.post('/message/send', data = {"userid":student_id0, "content":"group_content_str", "senderid":student_id0, "channelid": channel_id0}, headers = helper.token2headers(student_token0)).json["messageid"]
+    project_msg_id = client.post('/message/send', data = {"userid":student_id0, "content":"project_content_str", "senderid":student_id0, "channelid": project_channel_id}, headers = helper.token2headers(student_token0)).json["messageid"]
+    response = client.post('/message/send', data = {"userid":student_id0, "content":"bad_content_str", "senderid":student_id0, "channelid": channel_id1}, headers = helper.token2headers(student_token0))
+    assert response.status_code == 403
+
+    assert helper.view_message(channel_id0)[0]["content"] == "group_content_str"
+    assert helper.view_message(project_channel_id)[0]["content"] == "project_content_str"
+    response = client.get('/channel/messages', data = {"userid":student_id1, "channelid": channel_id0}, headers = helper.token2headers(student_token1))
+    assert response.status_code == 403
+    response = client.get('/channel/messages', data = {"userid":student_id2, "channelid": project_channel_id}, headers = helper.token2headers(student_token2))
+    assert response.json["messages"][0]["content"] == "project_content_str"
+
+    response = client.post('/message/send', data = {"userid":client_id, "content":"group_content_str", "senderid":client_id, "channelid": project_channel_id}, headers = helper.token2headers(client_token))
+    assert response.status_code == 201
+    # TODO: allow owner of project to delete message
+    #response = client.delete('/message/delete', data = {"userid": client_id, "messageid": project_msg_id}, headers = helper.token2headers(client_token))
+    #assert response.status_code == 200
+
+    response = client.get('/users/channels', data = {"userid":student_id0, "target_userid":student_id0}, headers = helper.token2headers(student_token0))
+    assert response.status_code == 200
+    assert set(helper.users_channel_ids(student_id0, student_token0)) == set([channel_id0, project_channel_id])
+    assert set(helper.users_channel_ids(student_id2, student_token2)) == set([channel_id1, project_channel_id])
+    assert set(helper.users_channel_ids(client_id, client_token)) == set([project_channel_id])
+    assert set(helper.users_channel_ids(admin_id, admin_token)) == set([])
+
+
+def test_manual_io_channel():
+    admin_id, admin_token = helper.get_admin()
+    student_id0, student_token0 = helper.create_user(0)
+    student_id1, student_token1 = helper.create_user(1)
+    student_id2, student_token2 = helper.create_user(2)
+    client_id, client_token = helper.create_user(3, role=Role.CLIENT)
+
+    group_id, channel_id = helper.create_group(student_id0, student_token0, group_name=0, member_indexs=[1])
+    project_id, project_channel_id = helper.create_project(client_id, client_token, group_ids=[group_id])
+
+    client.post('/group/leave', data={"userid": student_id1}, headers=helper.token2headers(student_token1))
+    client.put('/channel/io', data={"userid": admin_id, "target_userid": student_id0, "channelid": channel_id, "io": "leave"}, headers=helper.token2headers(admin_token))
+    assert set(helper.users_channel_ids(student_id0, student_token0)) == set([project_channel_id])
+    assert set(helper.users_channel_ids(student_id1, student_token1)) == set([])
+
+    helper.join_group(student_id0, student_token0, student_id2, student_token2, group_id)
+    client.put('/channel/io', data={"userid": admin_id, "target_userid": student_id1, "channelid": project_channel_id, "io": "join"}, headers=helper.token2headers(admin_token))
+    assert set(helper.users_channel_ids(student_id2, student_token2)) == set([channel_id, project_channel_id])
+    assert set(helper.users_channel_ids(student_id1, student_token1)) == set([project_channel_id])
+
+
+
+
 
 
 

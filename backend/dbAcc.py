@@ -4,6 +4,7 @@ from collections import namedtuple
 from datetime import datetime
 
 import psycopg2.extras
+import dbChannel
 
 # TODO: swap to using connection pool
 try:
@@ -159,8 +160,9 @@ def add_user_to_group(userid: int, groupid: int):
   curs = conn.cursor()
   curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (groupid, userid))
   conn.commit()
-  new_grp_d = get_group_by_id(groupid)
-  add_user_to_channel(userid, new_grp_d.channel)
+  dbChannel.join_group(groupid, userid)
+  #new_grp_d = get_group_by_id(groupid)
+  #add_user_to_channel(userid, new_grp_d.channel)
 
   
 def update_group_owner(userid: int, groupid: int):
@@ -183,14 +185,18 @@ def remove_user_from_group(userid: int):
   '''
   curs = conn.cursor()
   #ownership transferred in backend funcs rather than here
-  curs.execute(""" DELETE FROM accesschannels 
-               WHERE userid = %s 
-               AND channelid = (
-                SELECT groups.channel FROM users 
-                JOIN groups ON groups.groupid = users.groupid 
-                WHERE users.userid = %s);
-               UPDATE users SET groupid = NULL WHERE userid = %s""", (userid, userid, userid))
+  #curs.execute(""" DELETE FROM accesschannels 
+  #             WHERE userid = %s 
+  #             AND channelid = (
+  #              SELECT groups.channel FROM users 
+  #              JOIN groups ON groups.groupid = users.groupid 
+  #              WHERE users.userid = %s);
+  #             UPDATE users SET groupid = NULL WHERE userid = %s""", (userid, userid, userid))
+  groupid = get_user_by_id(userid).groupid
+  curs.execute("UPDATE users SET groupid = NULL WHERE userid = %s", (userid,))
   conn.commit()
+  if groupid is not None:
+    dbChannel.leave_group(groupid, userid)
 
 def delete_group(groupid : int):
   ''' Deletes a group from the system, also deletes group's channel
@@ -478,10 +484,11 @@ def assign_project_to_group(projectid: int, groupid: int):
   curs.execute("""WITH proj AS (SELECT channel FROM projects WHERE projectid = %s)
                   UPDATE groups SET assign = %s WHERE groupid = %s RETURNING (SELECT channel FROM proj)""", (projectid, projectid, groupid))
   conn.commit()
-  ch_id = curs.fetchone()[0]
-  usr_d_l = get_group_members(groupid)
-  usr_id_l = [x.userid for x in usr_d_l]
-  add_users_to_channel(usr_id_l, ch_id)
+  #ch_id = curs.fetchone()[0]
+  #usr_d_l = get_group_members(groupid)
+  #usr_id_l = [x.userid for x in usr_d_l]
+  #add_users_to_channel(usr_id_l, ch_id)
+  dbChannel.assign_project(projectid, groupid)
   
 def unassign_project_from_group(groupid: int):
   ''' Unassigns a groups assigned project
@@ -489,6 +496,7 @@ def unassign_project_from_group(groupid: int):
   Paramters: 
     groupid (int)
   '''
+  projectid = get_group_by_id(groupid).project
   curs = conn.cursor()
   curs.execute("""WITH proj AS (
                   SELECT projects.channel FROM groups 
@@ -497,10 +505,12 @@ def unassign_project_from_group(groupid: int):
                 UPDATE groups SET assign = %s 
                 WHERE groupid = %s RETURNING (SELECT channel FROM proj)""", (groupid, None, groupid))
   conn.commit()
-  ch_id = curs.fetchone()[0]
-  usr_d_l = get_group_members(groupid)
-  usr_id_l = [x.userid for x in usr_d_l]
-  remove_users_from_channel(usr_id_l, ch_id)
+  #ch_id = curs.fetchone()[0]
+  #usr_d_l = get_group_members(groupid)
+  #usr_id_l = [x.userid for x in usr_d_l]
+  #remove_users_from_channel(usr_id_l, ch_id)
+  if projectid is not None:
+    dbChannel.unassign_project(projectid, groupid)
   
 #------------------------
 # Skills
