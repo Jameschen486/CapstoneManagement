@@ -80,3 +80,14 @@ def test_updateUserName1():
         assert e.status_code == 400
 
     clear_users()
+
+def test_reset_req_1():
+    use_d0 = [0, "capstone.management@gmail.com", "me1", "them1", "password1", 1]
+
+    dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
+    assert(dbAcc.get_reset_code(use_d0[0]) == None)
+
+    authentication.auth_reset_request(use_d0[1])
+    assert(dbAcc.get_reset_code(use_d0[0]) != None)
+
+    clear_users()

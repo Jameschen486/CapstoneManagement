@@ -1,7 +1,16 @@
 import hashlib
 import random
+import math
 import dbAcc
 import jwt
+import os
+import sys
+import smtplib
+import datetime
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.message import EmailMessage
 
 from error import HTTPError
 key = "rngwarriors"
@@ -97,3 +106,44 @@ def updateUserName(email, password, firstName, lastName):
         raise HTTPError('Invalid email or password, please try again', 400)
     return
 
+def auth_reset_request(email):
+    user = dbAcc.get_user_by_email(email)
+    if user is None:
+        raise HTTPError('Invalid email or password, please try again', 400)
+
+    code = random.randint(100000, 999999)
+    timestamp = datetime.datetime.now()
+
+    dbAcc.create_reset_code(user[0], code, timestamp)
+    smtpPort = 2500
+    address = "127.0.0.1"
+    fromAddress = "capstone.management@gmail.com"
+
+    #setting email
+    msg = EmailMessage()
+    msg.set_content(f"""
+Hello {user[2]},
+your password reset code for streams is {code}.
+If you did not make this request, you can ignore this email.""")
+
+    msg['Subject'] = "Password reset for Capstone Management"
+    msg['To'] = email
+    msg['From'] = fromAddress
+
+    #sending email
+    server = smtplib.SMTP("{0}:{1}".format(address, smtpPort))
+    server.sendmail(fromAddress, email, msg)
+    server.quit()
+    save_data()
+
+    return
+
+def auth_password_reset(email, reset_code, new_password):
+    user = dbAcc.get_user_by_email(email)
+    if (reset_code != dbAcc.get_reset_code(user[0])):
+        raise HTTPError('Incorrect reset code, try again.', 400)
+
+    hashedPassword = getHashOf(new_password)
+    update_password(user[0], hashedPassword)
+    dbAcc.remove_reset_code(user[0])
+    return

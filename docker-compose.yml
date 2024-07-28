@@ -14,6 +14,7 @@ services:
     restart: always
     networks:
       - testnet
+
   backend:
     build: ./backend
     ports:
@@ -27,6 +28,7 @@ services:
       - FLASK_RUN_PORT=5001
     depends_on:
       - postgres
+      - mailerslurper
     networks:
       - testnet
 
@@ -59,7 +61,15 @@ services:
     networks:
       - testnet
 
+  mailerslurper:
+    image: marcopas/docker-mailslurper
+    ports:
+      - 2500:2500
+    networks:
+      - testnet
+
 networks:
   testnet:
+
 volumes:
   db:
