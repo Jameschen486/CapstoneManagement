@@ -1,3 +1,5 @@
+CREATE EXTENSION pgcrypto;
+
 CREATE TABLE channels (
   channelid     serial PRIMARY KEY,
   channelname   varchar
@@ -94,3 +96,5 @@ CREATE TABLE accesschannels (
 
 ALTER TABLE users ADD FOREIGN KEY (groupid) REFERENCES groups(groupid) ON DELETE SET NULL;
 
+INSERT INTO users (email, firstname, lastname, password, role) 
+VALUES ('admin@email.com', 'admin', 'admin', encode(digest('password', 'md5'), 'hex'), 3);
