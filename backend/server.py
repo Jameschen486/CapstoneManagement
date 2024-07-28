@@ -49,7 +49,8 @@ def auth_register():
     password = request.form['password']
     firstName = request.form['firstName']
     lastName = request.form['lastName']
-    return jsonify(register(email, password, firstName, lastName))
+    role = int(request.form.get('role', default=0))
+    return jsonify(register(email, password, firstName, lastName, role))
 
 @app.post('/updateUserRole')
 def update_user_role():
@@ -98,7 +99,7 @@ def handle_join_request_route():
     user_id = int(data.get('userid'))
     applicant_id = int(data.get('applicantid'))
     group_id = int(data.get('groupid'))
-    accept = bool(data.get('accept'))
+    accept = data.get('accept').lower() == 'true'
     token = request.authorization
     if auth_id(token, user_id):
         response, status_code = groups.handle_join_request(user_id, applicant_id, group_id, accept, MAX_STUDENT_PER_GROUP)
