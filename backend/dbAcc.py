@@ -4,6 +4,7 @@ from collections import namedtuple
 from datetime import datetime
 
 import psycopg2.extras
+import dbChannel
 
 # TODO: swap to using connection pool
 try:
@@ -27,6 +28,7 @@ Projects_skill_d = namedtuple("Projects_skills_d", ["projectid", "groupcount", "
 Reset_code_d = namedtuple("Reset_code_d", ["userid", "code", "timestamp"])
 User_pref_d = namedtuple("User_pref_d", ["projectid", "rank"])
 Group_pref_d = namedtuple("Group_pref_d", ["groupid", "projectid", "rank"])
+Notif_d_full = namedtuple("Notif_d_base", ["notifid", "userid", "created", "isnew", "content"])
 Notif_d_base = namedtuple("Notif_d_base", ["notifid", "timestamp", "content"])
 Channel_d_base = namedtuple("Channel_d_base", ["channelid", "channel_name"])
 Message_d_base = namedtuple("Message_d_base", ["messageid", "ownerid", "timestamp", "content"])
@@ -158,8 +160,9 @@ def add_user_to_group(userid: int, groupid: int):
   curs = conn.cursor()
   curs.execute("UPDATE users SET groupid = %s WHERE userid = %s", (groupid, userid))
   conn.commit()
-  new_grp_d = get_group_by_id(groupid)
-  add_user_to_channel(userid, new_grp_d.channel)
+  dbChannel.join_group(groupid, userid)
+  #new_grp_d = get_group_by_id(groupid)
+  #add_user_to_channel(userid, new_grp_d.channel)
 
   
 def update_group_owner(userid: int, groupid: int):
@@ -182,14 +185,18 @@ def remove_user_from_group(userid: int):
   '''
   curs = conn.cursor()
   #ownership transferred in backend funcs rather than here
-  curs.execute(""" DELETE FROM accesschannels 
-               WHERE userid = %s 
-               AND channelid = (
-                SELECT groups.channel FROM users 
-                JOIN groups ON groups.groupid = users.groupid 
-                WHERE users.userid = %s);
-               UPDATE users SET groupid = NULL WHERE userid = %s""", (userid, userid, userid))
+  #curs.execute(""" DELETE FROM accesschannels 
+  #             WHERE userid = %s 
+  #             AND channelid = (
+  #              SELECT groups.channel FROM users 
+  #              JOIN groups ON groups.groupid = users.groupid 
+  #              WHERE users.userid = %s);
+  #             UPDATE users SET groupid = NULL WHERE userid = %s""", (userid, userid, userid))
+  groupid = get_user_by_id(userid).groupid
+  curs.execute("UPDATE users SET groupid = NULL WHERE userid = %s", (userid,))
   conn.commit()
+  if groupid is not None:
+    dbChannel.leave_group(groupid, userid)
 
 def delete_group(groupid : int):
   ''' Deletes a group from the system, also deletes group's channel
@@ -417,7 +424,6 @@ def get_all_projects() -> typing.List[Proj_d_full]:
   for rec in curs:
     ret_list.append(Proj_d_full(rec[0], rec[1], rec[2], rec[3], rec[4], rec[5], rec[6], rec[7], rec[8], rec[9], rec[10], rec[11], rec[12]))
   return ret_list
-  
 
 def update_project(projectid: int, ownerid: int, title: str, clients: str, specializations:str, 
                    groupcount: str, background: str, requirements: str, 
@@ -469,6 +475,42 @@ def delete_project_by_id(projectid: int):
                AND channels.channelid = projects.channel; 
                DELETE FROM projects WHERE projectid = %s""", (projectid, projectid))
   conn.commit()
+  
+def assign_project_to_group(projectid: int, groupid: int):
+  ''' Assigns a project to a group
+      also adds group members to projects channel
+  '''
+  curs = conn.cursor()
+  curs.execute("""WITH proj AS (SELECT channel FROM projects WHERE projectid = %s)
+                  UPDATE groups SET assign = %s WHERE groupid = %s RETURNING (SELECT channel FROM proj)""", (projectid, projectid, groupid))
+  conn.commit()
+  #ch_id = curs.fetchone()[0]
+  #usr_d_l = get_group_members(groupid)
+  #usr_id_l = [x.userid for x in usr_d_l]
+  #add_users_to_channel(usr_id_l, ch_id)
+  dbChannel.assign_project(projectid, groupid)
+  
+def unassign_project_from_group(groupid: int):
+  ''' Unassigns a groups assigned project
+  
+  Paramters: 
+    groupid (int)
+  '''
+  projectid = get_group_by_id(groupid).project
+  curs = conn.cursor()
+  curs.execute("""WITH proj AS (
+                  SELECT projects.channel FROM groups 
+                  JOIN projects ON projects.projectid = groups.assign
+                  WHERE groupid = %s)
+                UPDATE groups SET assign = %s 
+                WHERE groupid = %s RETURNING (SELECT channel FROM proj)""", (groupid, None, groupid))
+  conn.commit()
+  #ch_id = curs.fetchone()[0]
+  #usr_d_l = get_group_members(groupid)
+  #usr_id_l = [x.userid for x in usr_d_l]
+  #remove_users_from_channel(usr_id_l, ch_id)
+  if projectid is not None:
+    dbChannel.unassign_project(projectid, groupid)
   
 #------------------------
 # Skills
@@ -781,6 +823,23 @@ def create_notif(userid: int, timestamp: datetime, content: str) -> int:
   curs.execute("INSERT INTO notifications (userid, created, isnew, content) VALUES (%s, %s, %s, %s) RETURNING notifid", (userid, timestamp, True, content))
   conn.commit()
   return curs.fetchone()[0]
+
+def get_notif_by_id(notifid: int) -> Notif_d_full:
+  ''' Queries the database for notif information
+  
+  Parameters:
+    - notifid (integer)
+    
+  Returns:
+    - tuple (notifid, userid, created, isnew, content)
+    - None, if project does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT * FROM notifications WHERE notifid = %s", (notifid,))
+  ret = curs.fetchone()
+  if ret == None:
+    return None
+  return Notif_d_full(ret[0], ret[1], ret[2], ret[3], ret[4])
   
 def get_notifs(userid: int) -> typing.List[Notif_d_base]:
   ''' Returns all notifs for a given user
@@ -917,6 +976,19 @@ def add_user_to_channel(userid: int, channelid: int):
   curs.execute("INSERT INTO accesschannels (userid, channelid) VALUES (%s, %s)", (userid, channelid))
   conn.commit()
 
+def add_users_to_channel(userids: typing.List[int], channelid: int):
+  ''' adds multiple users to a given channel
+      slightly faster than performing multiple calls to add_user_to_channel
+      
+  Paramters:
+    - userids ([int])
+    - channelid (int)
+  '''
+  vals = [(x, channelid) for x in userids]
+  curs = conn.cursor()
+  psycopg2.extras.execute_values(curs, "INSERT INTO accesschannels (userid, channelid) VALUES %s", vals)
+  conn.commit()
+
 def remove_user_from_channel(userid:int, channelid: int):
   ''' Removes a specified user's access to a specified channel
   
@@ -931,6 +1003,18 @@ def remove_user_from_channel(userid:int, channelid: int):
   curs.execute("DELETE FROM accesschannels WHERE userid = %s AND channelid = %s", (userid, channelid))
   conn.commit()
 
+def remove_users_from_channel(userids: typing.List[int], channelid: int):
+  ''' Removes multiple users from a channel 
+      should be faster than running multiple remove user
+      
+  Paramters:
+    userids ([int])
+    channelid (int)
+  '''
+  curs = conn.cursor()
+  curs.execute("DELETE FROM accesschannels WHERE userid IN %s AND channelid = %s", (tuple(userids), channelid))
+  conn.commit()
+  
 #retrieval
 def get_users_channels(userid: int) -> typing.List[Channel_d_base]:
   ''' Gets all channels a user has access to
@@ -961,7 +1045,7 @@ def get_all_channels() -> typing.List[Channel_d_base]:
   curs.execute("SELECT channelid, channelname FROM channels")
   ret = []
   for rec in curs:
-    ret.append(rec[0], rec[1])
+    ret.append(Channel_d_base(rec[0], rec[1]))
   return ret
 
 def get_channel_members(channelid: int) -> typing.List[User_d_base]:
@@ -1002,6 +1086,23 @@ def create_message(channelid: int, ownerid: int, content: str):
   curs.execute("INSERT INTO messages (channelid, ownerid, content) VALUES (%s, %s, %s) RETURNING messageid", (channelid, ownerid, content))
   conn.commit()
   return curs.fetchone()[0]
+
+def get_message_by_id(messageid: int) -> Message_d_base:
+  ''' Queries the database for message information
+  
+  Parameters:
+    - messageid (integer)
+    
+  Returns:
+    - tuple (messageid, ownerid, timestamp, content)
+    - None, if project does not exist
+  '''
+  curs = conn.cursor()
+  curs.execute("SELECT messageid, ownerid, created, content FROM messages WHERE messageid = %s", (messageid,))
+  ret = curs.fetchone()
+  if ret == None:
+    return None
+  return Message_d_base(ret[0], ret[1], ret[2], ret[3])
 
 def edit_message(messageid: int, content: str):
   ''' Edits the content of a specified message

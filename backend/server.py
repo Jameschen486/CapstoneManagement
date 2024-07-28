@@ -9,6 +9,8 @@ from projects import Project
 from skills import Skill
 import preference
 from algorithms import allocate
+import permission
+import message, channel
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +22,10 @@ CORS(app)
 # mysql.init_app(app)
 
 MAX_STUDENT_PER_GROUP = 6
+
+def make_res_code(res, code):
+  ret_res = {"message": res}
+  return jsonify(res), code
 
 # ERROR HANDLER
 @app.errorhandler(HTTPError)
@@ -44,7 +50,8 @@ def auth_register():
     password = request.form['password']
     firstName = request.form['firstName']
     lastName = request.form['lastName']
-    return jsonify(register(email, password, firstName, lastName))
+    role = int(request.form.get('role', default=0))
+    return jsonify(register(email, password, firstName, lastName, role))
 
 @app.post('/updateUserRole')
 def update_user_role():
@@ -93,7 +100,7 @@ def handle_join_request_route():
     user_id = int(data.get('userid'))
     applicant_id = int(data.get('applicantid'))
     group_id = int(data.get('groupid'))
-    accept = bool(data.get('accept'))
+    accept = data.get('accept').lower() == 'true'
     token = request.authorization
     if auth_id(token, user_id):
         response, status_code = groups.handle_join_request(user_id, applicant_id, group_id, accept, MAX_STUDENT_PER_GROUP)
@@ -123,6 +130,72 @@ def leave_group_route():
     if auth_id(token, user_id): 
         response, status_code = groups.leave_group(user_id)
         return jsonify(response), status_code
+      
+@app.route('/group/assign_project', methods=['PUT'])
+def group_assign_project_route():
+  """ Assigns project to group
+  
+  Form data:
+    groupid (int)
+    projectid (int)
+    
+  Responses:
+    200, ok / project already assigned
+    400, invalid groupid or projectid
+    401, No token given
+    403, Not enough permissions
+    500, likely failed sql transaction
+  """
+  tok = request.authorization
+  if tok == None:
+    return make_res_code("No token given", 401)
+  data = request.form
+  try:
+    gid = int(data.get('groupid'))
+  except ValueError:
+    return make_res_code("Malformed input, groupid not int", 400)
+  
+  try:
+    pid = int(data.get('projectid'))
+  except ValueError:
+    return make_res_code("Malformed input, project not int", 400)
+  
+  try: 
+    auth_role(tok, permission.Role.ADMIN, permission.Role.COORDINATOR)
+  except:
+    return make_res_code("Insufficient permissions", 403)
+  res, status_code = groups.assign_project(gid, pid)
+  return jsonify(res), status_code
+    
+@app.route('/group/unassign_project', methods=['PUT'])
+def group_unassign_project_route():
+  """ Unassigns project from group
+  
+  Form data:
+    groupid (int)
+  
+  Responses:
+    200, ok / no project assigned
+    400, Invalid groupid
+    403, Not enough permissions
+    500, likely failed sql transaction
+  """
+  tok = request.authorization
+  if tok == None:
+    return make_res_code("No token given", 401)
+  data = request.form
+  
+  try:
+    gid = int(data.get('groupid'))
+  except ValueError:
+    return make_res_code("Malformed input, groupid not int", 400)
+  
+  try:
+    auth_role(tok, permission.Role.ADMIN, permission.Role.COORDINATOR)
+  except:
+    return make_res_code("Insufficient permissions", 403)
+  res, status_code = groups.unassign_project(gid)
+  return jsonify(res), status_code
     
 @app.get('/user')
 def get_user():
@@ -299,6 +372,107 @@ def view_preference_route():
 @app.route('/allocate/auto', methods=['GET', 'POST'])
 def allocate_auto():
     return jsonify(allocate())
+
+@app.route('/channel/io', methods=['PUT'])
+def channel_manual_io():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    target_userid = data.get('target_userid', default=None, type=int)
+    channelid = data.get('channelid', default=None, type=int)
+    io = data.get('io', default=None, type=str)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.manual_io(userid, target_userid, channelid, io)
+        return jsonify(response), status_code
+
+@app.route('/group/channel', methods=['GET'])
+def get_group_channel():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    groupid = data.get('groupid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.get_group_channelid(userid, groupid)
+        return jsonify(response), status_code
+    
+@app.route('/project/channel', methods=['GET'])
+def get_project_channel():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    projectid = data.get('projectid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.get_project_channelid(userid, projectid)
+        return jsonify(response), status_code
+
+@app.route('/users/channels', methods=['GET'])
+def get_users_channel():
+    """
+    Warning: 
+    get_users_channel() includes a channel -> user has access to that channel
+    user has access to a channel !-> get_users_channel() includes that channel (e.g. TUTOR can access all channels)
+    """
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    target_userid = data.get('target_userid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.get_users_channels(userid, target_userid)
+        return jsonify(response), status_code
+
+@app.route('/channel/messages', methods=['GET'])
+def get_channel_messages():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    channelid = data.get('channelid', default=None, type=int)
+    last_message = data.get('last_message', default=None, type=int)
+    latest_message = data.get('latest_message', default=False, type=bool)
+    
+    if auth_id(token, userid): 
+        response, status_code = channel.view_message(userid, channelid, last_message, latest_message)
+        return jsonify(response), status_code
+
+@app.route('/message/send', methods=['POST'])
+def send_message_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    content = data.get('content', default=None, type=str)
+    senderid = data.get('senderid', default=None, type=int)
+    channelid = data.get('channelid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = message.send(userid, content, senderid, channelid)
+        return jsonify(response), status_code
+    
+@app.route('/message/edit', methods=['PUT'])
+def edit_message_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    content = data.get('content', default=None, type=str)
+    msgid = data.get('messageid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = message.edit(userid, msgid, content)
+        return jsonify(response), status_code
+
+@app.route('/message/delete', methods=['DELETE'])
+def delete_message_route():
+    token = request.authorization
+    data = request.form
+    userid = int(data['userid'])
+    msgid = data.get('messageid', default=None, type=int)
+    
+    if auth_id(token, userid): 
+        response, status_code = message.delete(userid, msgid)
+        return jsonify(response), status_code
+
 
 
 if __name__ == "__main__":
