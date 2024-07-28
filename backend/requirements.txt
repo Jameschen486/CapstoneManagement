@@ -3,3 +3,5 @@ psycopg2
 flask
 flask_cors
 pyjwt
+numpy
+scipy
