@@ -93,7 +93,7 @@ def handle_join_request_route():
     user_id = int(data.get('userid'))
     applicant_id = int(data.get('applicantid'))
     group_id = int(data.get('groupid'))
-    accept = bool(data.get('accept'))
+    accept = data.get('accept').lower() == 'true'
     token = request.authorization
     if auth_id(token, user_id):
         response, status_code = groups.handle_join_request(user_id, applicant_id, group_id, accept, MAX_STUDENT_PER_GROUP)
@@ -298,4 +298,4 @@ def view_preference_route():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5097)
+    app.run(debug=True, host='0.0.0.0', port=5001)
