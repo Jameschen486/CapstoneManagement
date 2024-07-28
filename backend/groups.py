@@ -86,6 +86,7 @@ def view_group_details(group_id):
         "groupid": group_details[0],
         "ownerid": group_details[1],
         "groupname": group_details[2],
+        "project": group_details.project,
         "group_members": group_members
     }, 200
 
@@ -116,3 +117,30 @@ def leave_group(user_id):
 
     dbAcc.remove_user_from_group(user_id)
     return {"message": "User has left the group"}, 200
+  
+def assign_project(groupid, projectid):
+  grp_d = dbAcc.get_group_by_id(groupid)
+  if (grp_d == None):
+    return {"message": "Group id is invalid"}, 400
+  if (dbAcc.get_project_by_id(projectid) == None):
+    return {"message": "Project id is invalid"}, 400
+  if (grp_d.project != None):
+    return {"message": "A project is already assigned, unassign the previous project if you wish to assign a new one"}, 200
+  try:
+    dbAcc.assign_project_to_group(projectid, groupid)
+  except:
+    return {"message": "An error occurred, project not assigned"}, 500
+  return {"message": "Project successfully assigned"}, 200
+
+def unassign_project(groupid):
+  grp_d = dbAcc.get_group_by_id(groupid)
+  if (grp_d == None):
+    return {"message": "Group id is invalid"}, 400
+  elif (grp_d.channel == None):
+    return {"message": "Group is not assigned a project"}, 200
+  try:
+    dbAcc.unassign_project_from_group(groupid)
+  except:
+    return {"message": "An error occurred, project still assigned"}, 500
+  return {"message": "Project successfully unassigned"}, 200
+  

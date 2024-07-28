@@ -16,12 +16,12 @@ def jwt_decode(token):
         raise HTTPError("Invalid Signature", 401)
     return payload
 
-def auth_role(token, role):
+def auth_role(token, *args):
     # Have to remove prefix from standard format
     token = str(token).split()
     token = token[1]
     payload = jwt_decode(token)
-    if payload['role'] != role:
+    if payload['role'] not in args:
         raise HTTPError("Insufficent Privelage", 400)
     return payload
 
