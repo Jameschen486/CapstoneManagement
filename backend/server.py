@@ -8,6 +8,7 @@ from error import HTTPError
 from projects import Project
 from skills import Skill
 import preference
+from algorithms import allocate
 
 app = Flask(__name__)
 CORS(app)
@@ -294,6 +295,10 @@ def view_preference_route():
         role = return_user(user_id)["role"]
         response, status_code = preference.view_preference(user_id, student_id, role)
         return jsonify(response), status_code
+    
+@app.route('/allocate/auto', methods=['GET', 'POST'])
+def allocate_auto():
+    return jsonify(allocate())
 
 
 if __name__ == "__main__":
