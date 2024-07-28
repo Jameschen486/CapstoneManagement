@@ -76,7 +76,7 @@ CREATE TABLE resetcodes (
 CREATE TABLE notifications (
   notifid       serial PRIMARY KEY,
   userid        integer REFERENCES users(userid) ON DELETE CASCADE,
-  created       timestamp,
+  created       timestamp DEFAULT current_timestamp,
   isnew         boolean,
   content       text
 );
