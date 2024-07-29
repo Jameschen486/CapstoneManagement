@@ -68,7 +68,7 @@ body {
 }
 
 .home-header {
-  background-color: #a48372;
+  background-image: url('wood.jpg');
   width: 100%;
   padding: 20px 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
