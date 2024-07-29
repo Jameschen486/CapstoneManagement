@@ -1,3 +1,5 @@
+import datetime
+import psycopg2
 from error import InputError, AccessError
 import dbAcc
 
@@ -40,8 +42,9 @@ def join_group(group_id, student_id, group_capacity):
 
     # Send notification to group owner
     owner_id = dbAcc.get_group_by_id(group_id)[1]
+    timestamp = datetime.datetime.now()
     content = f"A join request has been made by user {student_id}."
-    dbAcc.create_notif(owner_id, content)
+    dbAcc.create_notif(owner_id, timestamp, content)
     return {"message": "Join request sent successfully!"}, 201
 
 def handle_join_request(user_id, applicant_id, group_id, accept, group_capacity):
@@ -57,16 +60,18 @@ def handle_join_request(user_id, applicant_id, group_id, accept, group_capacity)
         dbAcc.remove_all_join_requests(applicant_id)
 
         # Send Notification
+        timestamp = datetime.datetime.now()
         content = f"You have been added to the group {group_id}."
-        dbAcc.create_notif(applicant_id, content)
+        dbAcc.create_notif(applicant_id, timestamp, content)
         
         return  {"message": f"User {applicant_id} added to your group."}, 201
     else:
         dbAcc.remove_join_request(applicant_id, group_id)
 
         # Send notification
+        timestamp = datetime.datetime.now()
         content = f"Your request to join the group {group_id} has been rejected."
-        dbAcc.create_notif(applicant_id, content)
+        dbAcc.create_notif(applicant_id, timestamp, content)
 
         return {"message": f"User {applicant_id} rejected."}, 201
 

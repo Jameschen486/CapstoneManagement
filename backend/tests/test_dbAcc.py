@@ -400,20 +400,18 @@ def test_get_alls():
   
 def test_notifications():
   use_d0[0] = dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
-  notif_d0 = [0, None, "notification0"]
-  notif_d1 = [0, None, "notification1"]
+  notif_d0 = [0, datetime.datetime.now(), "notification0"]
+  notif_d1 = [0, datetime.datetime.now(), "notification1"]
   
-  notif_d0[0] = dbAcc.create_notif(use_d0[0], notif_d0[2])
-  notif_d1[0] = dbAcc.create_notif(use_d0[0], notif_d1[2])
+  notif_d0[0] = dbAcc.create_notif(use_d0[0], notif_d0[1], notif_d0[2])
+  notif_d1[0] = dbAcc.create_notif(use_d0[0], notif_d1[1], notif_d1[2])
   
   given = dbAcc.get_new_notifs(use_d0[0])
   assert given == 2
   
   given = dbAcc.get_notifs(use_d0[0])
-  notif_d1[1] = given[0].timestamp
-  assert tuple(notif_d1) in given
-  notif_d0[1] = given[1].timestamp
   assert tuple(notif_d0) in given
+  assert tuple(notif_d1) in given
   
   given = dbAcc.get_new_notifs(use_d0[0])
   assert given == 0
@@ -423,7 +421,7 @@ def test_notifications():
   assert tuple(notif_d0) in given
   assert tuple(notif_d1) not in given
   
-  notif_d1[0] = dbAcc.create_notif(use_d0[0], notif_d1[2])
+  notif_d1[0] = dbAcc.create_notif(use_d0[0], notif_d1[1], notif_d1[2])
   given = dbAcc.get_new_notifs(use_d0[0])
   assert given == 1
   dbAcc.delete_all_notifs(use_d0[0])

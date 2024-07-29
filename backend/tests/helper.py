@@ -15,7 +15,7 @@ ADMIN = {"email": "admin_email", "password": "admin_password", "firstName": "adm
 
 USERS = [
     {"email": f"email{i}", "password": f"password{i}", "firstName": f"firstName{i}", "lastName": f"lastName{i}"} 
-    for i in range(100)
+    for i in range(10)
 ]
 
 SKILLS = [
