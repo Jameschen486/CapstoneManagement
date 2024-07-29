@@ -73,10 +73,15 @@ const Projects = () => {
     setSelectedProjectId(null);
   };
 
+  const handleBack = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <div className="projects-container">
       <header className="projects-header">
         <h1>Your Projects</h1>
+        <button onClick={handleBack} className="back-button">Back to Dashboard</button>
       </header>
       <div className="projects-content">
         {loading && <p>Loading projects...</p>}
