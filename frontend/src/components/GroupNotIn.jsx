@@ -64,9 +64,9 @@ const GroupNotIn = () => {
 
   return (
     <div className="group-not-in">
-      <h2>You are not in a group</h2>
+      <h2>You are not in a group. <br></br>Please create a new group or join an existing group</h2>
       <button onClick={handleCreateGroup}>Create</button>
-      <h3>Groups</h3>
+      <h3>Available Groups</h3>
       {groups.map((group) => (
         <div key={group.groupid} className="group-item">
           <span>{group.groupname}</span>
