@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../css/Dashboard.css';
+import '../css/Profile.css';
 import Modal from './Modal';
 
-const Dashboard = () => {
+const Profile = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('');
   const [hasData, setHasData] = useState(false);
@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [isUserDetailSectionCollapsed, setIsUserDetailSectionCollapsed] = useState(true);
 
   useEffect(() => {
     // User role from localStorage
@@ -85,47 +86,54 @@ const Dashboard = () => {
     }
     // Add your form submission logic here
 };
-  const handleLogout = () => {
-    // Clear any stored user information (e.g., token)
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('groupId');
-    navigate('/');
+
+  const toggleUserDetailSection = () => {
+    setIsUserDetailSectionCollapsed(!isUserDetailSectionCollapsed);
+  };
+  const handleBack = () => {
+    navigate('/dashboard');
   };
 
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
-        <h1>Welcome to Your Dashboard</h1>
-        <button onClick={handleLogout} className="logout-button">Logout</button>
+        <h1>Profile</h1>
+        <button onClick={handleBack} className="back-button">Back</button>
       </header>
       <div className="dashboard-content">
         <div className="dashboard-section">
+          <h2>User Detail</h2>
             <div className='dashboard-header-row'>
-                <h2>Profile</h2>
                 {console.log(user.first)}
-                {/* <p>{user && user.map && user.map((data) => {
-                  
-                  return(
-                    <p> {user.first}</p>
-                  )
-                })}</p> */}
-                
-                <p>Firstname:
-                  <input type="text"  name="First" placeholder={firstName} onChange={(e) => setFirstName(e.target.value)}></input>
+                <p><strong>Firstname:</strong>
+                  {firstName}
                 </p>
                 
-                <p>LastName:
-                <input type="text" name="Last" placeholder={lastName} onChange={(e) => setLastName(e.target.value)}></input>
+                <p><strong>LastName:</strong>
+                  {lastName}
                 </p>
                 
-                <p>Email:
+                <p><strong>Email:</strong>
                 <p>{email}</p>
                 </p>
-                <button onClick={(e) => handleSubmit(e)}> update </button>
+                
                 
             </div>
+          <button onClick={toggleUserDetailSection} className="toggle-button">
+            {isUserDetailSectionCollapsed ? 'Update User Detail' : 'Close'}
+          </button>
+          {!isUserDetailSectionCollapsed && (
+            <form onSubmit={handleSubmit}>
+              <p>Firstname:
+                <input type="text" name="First" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              </p>
+              <p>LastName:
+                <input type="text" name="Last" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              </p>
+              <p>Email: {email}</p>
+              <button type="submit">Save Changes</button>
+            </form>
+          )}
         </div>
       </div>
       <Modal show={showNotificationModal} handleClose={() => setShowNotificationModal(false)} title="Notifications">
@@ -138,4 +146,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Profile;
