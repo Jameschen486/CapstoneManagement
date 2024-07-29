@@ -71,6 +71,12 @@
   cursor: pointer;
 }
 
+.icon-container button img {
+  width: 32px;
+  height: 32px; 
+  object-fit: cover; 
+}
+
 .dashboard-icons button:hover {
   background: #696a6a;
 }
@@ -97,4 +103,59 @@
 
 .dashboard-section h2 {
   margin-top: 0;
+}
+
+.role-change-section {
+  margin-top: 20px;
+}
+
+.role-change-toggle-button {
+  padding: 10px 15px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.role-change-toggle-button:hover {
+  background-color: #0056b3;
+}
+
+.role-change-form {
+  margin-top: 10px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.role-change-button {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.role-change-button:hover {
+  background-color: #45a049;
+}
+
+.message {
+  margin-top: 15px;
+  color: red;
 }

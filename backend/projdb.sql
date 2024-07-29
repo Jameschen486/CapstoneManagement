@@ -98,3 +98,8 @@ ALTER TABLE users ADD FOREIGN KEY (groupid) REFERENCES groups(groupid) ON DELETE
 
 INSERT INTO users (email, firstname, lastname, password, role) 
 VALUES ('admin@email.com', 'admin', 'admin', encode(digest('password', 'md5'), 'hex'), 3);
+
+COMMIT;
+
+-- Verify the insertion
+SELECT * FROM users;
