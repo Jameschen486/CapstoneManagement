@@ -44,6 +44,7 @@ const Dashboard = () => {
 
   const handleProfileClick = () => {
     navigate('/profile');
+  };
   const handleAdminClick = () => {
     navigate('/admin');
   };
@@ -293,5 +294,4 @@ const Dashboard = () => {
     </div>
   );
 };
-
 export default Dashboard;
