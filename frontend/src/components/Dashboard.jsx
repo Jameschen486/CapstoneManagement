@@ -44,6 +44,7 @@ const Dashboard = () => {
 
   const handleProfileClick = () => {
     navigate('/profile');
+  }
   const handleAdminClick = () => {
     navigate('/admin');
   };

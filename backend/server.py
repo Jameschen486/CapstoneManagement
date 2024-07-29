@@ -258,8 +258,7 @@ def get_project_details_route():
 @app.route('/projects/view', methods=['GET'])
 def view_projects_route():
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
+    userid = request.args.get('userid', type=int)
     if auth_id(token, userid): 
         response, status_code = Project.view_all(userid)
         return jsonify(response), status_code
