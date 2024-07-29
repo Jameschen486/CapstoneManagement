@@ -14,6 +14,7 @@ const Dashboard = () => {
   const [newRole, setNewRole] = useState('');
   const [message, setMessage] = useState('');
   const [isRoleSectionCollapsed, setIsRoleSectionCollapsed] = useState(true);
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const roleOptions = {
     'Student': 0,
@@ -72,6 +73,11 @@ const Dashboard = () => {
       const data = await response.json();
       if (response.ok) {
         setMessage('User role updated successfully.');
+        setFormSubmitted(true); // Hide the form
+        setEmail1('');
+        setPassword('');
+        setEmail2('');
+        setNewRole('');
       } else {
         setMessage(data.error || 'Failed to update user role.');
       }
@@ -83,6 +89,8 @@ const Dashboard = () => {
 
   const toggleRoleSection = () => {
     setIsRoleSectionCollapsed(!isRoleSectionCollapsed);
+    setMessage('');
+    setFormSubmitted(false); // Show the form again when the section is toggled
   };
 
   const renderDashboardContent = () => {
@@ -159,7 +167,7 @@ const Dashboard = () => {
               <button onClick={toggleRoleSection} className="role-change-toggle-button">
                 {isRoleSectionCollapsed ? 'Open Change User Role' : 'Close Change User Role'}
               </button>
-              {!isRoleSectionCollapsed && (
+              {!isRoleSectionCollapsed && !formSubmitted && (
                 <form className="role-change-form" onSubmit={handleRoleChange}>
                   <h3>Change User Role</h3>
                   {message && <p className="message">{message}</p>}
@@ -214,6 +222,9 @@ const Dashboard = () => {
                   </div>
                   <button type="submit" className="role-change-button">Change Role</button>
                 </form>
+              )}
+              {formSubmitted && (
+                <p className="message">{message}</p>
               )}
             </div>
           </div>
