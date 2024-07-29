@@ -33,6 +33,10 @@ const Dashboard = () => {
     navigate('/groups');
   };
 
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
   const renderDashboardContent = () => {
     switch (role) {
       case '0':
@@ -50,7 +54,7 @@ const Dashboard = () => {
                   <span className="icon-label">Messages</span>
                 </div>
                 <div className="icon-container">
-                  <button aria-label="Profile">&#128100;</button>
+                  <button onClick={handleProfileClick} aria-label="Profile">&#128100;</button>
                   <span className="icon-label">Profile</span>
                 </div>
                 <div className="icon-container">

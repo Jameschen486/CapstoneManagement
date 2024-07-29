@@ -5,3 +5,4 @@ flask_cors
 pyjwt
 numpy
 scipy
+Flask-Mail

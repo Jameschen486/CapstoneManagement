@@ -6,6 +6,7 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Groups from './components/Groups';
 import CreateGroup from './components/CreateGroup';
+import Profile from './components/Profile';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Routes>
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile/>} />
           <Route path="/" exact element={<Home />} />
           <Route path="/groups" element={<Groups />} />
           <Route path="/create-group" element={<CreateGroup />} />

@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_mail import Mail, Message
 # from flask_mysqldb import MySQL
 import groups
 
@@ -11,8 +12,19 @@ import preference
 from algorithms import allocate
 import permission
 import message, channel
+import sys
 
 app = Flask(__name__)
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'tfischerdev@gmail.com'
+app.config['MAIL_PASSWORD'] = 'zrhv jowd ytxd xgbh'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_DEFAULT_SENDER'] = 'tfischerdev@gmail.com'
+mail = Mail(app)
+
 CORS(app)
 # mysql = MySQL()
 
@@ -50,7 +62,10 @@ def auth_register():
     password = request.form['password']
     firstName = request.form['firstName']
     lastName = request.form['lastName']
-    role = int(request.form.get('role', default=0))
+    try:
+        role = int(request.form.get('role', default=0))
+    except:
+        role = 0
     return jsonify(register(email, password, firstName, lastName, role))
 
 @app.post('/updateUserRole')
@@ -63,11 +78,13 @@ def update_user_role():
 
 @app.post('/updateUserName')
 def update_user_name():
-    email = request.form['email']
-    password = request.form['password']
     firstName = request.form['firstName']
     lastName = request.form['lastName']
-    return jsonify(updateUserName(email, password, firstName,lastName))
+    user_id = int(request.form['user_id'])
+    token = request.authorization
+    if auth_id(token, user_id):
+        response, status_code = updateUserName(user_id,firstName,lastName)
+        return jsonify(response), status_code
 
 @app.route('/group/create', methods=['POST'])
 def create_group_endpoint():
@@ -372,6 +389,13 @@ def view_preference_route():
 @app.route('/allocate/auto', methods=['GET', 'POST'])
 def allocate_auto():
     return jsonify(allocate())
+# def send_email():
+#   msg = Message(
+#     'Hello',
+#     recipients=['chichun2002@gmail.com'],
+#     body='This is a test email sent from Flask-Mail!'
+#   )
+#   mail.send(msg)
 
 @app.route('/channel/io', methods=['PUT'])
 def channel_manual_io():
