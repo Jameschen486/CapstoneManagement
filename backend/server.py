@@ -7,11 +7,20 @@ from authentication import login, register, jwt_decode, return_user, auth_id, au
 from error import HTTPError
 from projects import Project
 from skills import Skill
+from flask_mail import Mail, Message
 import preference
 import permission
 import message, channel
 
 app = Flask(__name__)
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'capstone.managementdemo@gmail.com'
+app.config['MAIL_PASSWORD'] = 'qcln cwre sqli oyqq'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_DEFAULT_SENDER'] = 'capstone.managementdemo@gmail.com'
+mail = Mail(app)
 CORS(app)
 # mysql = MySQL()
 
@@ -68,12 +77,14 @@ def update_user_name():
     lastName = request.form['lastName']
     return jsonify(updateUserName(email, password, firstName,lastName))
 
-@app.route('/password/reset/request', methods=['POST'])
+
+@app.post('/auth_reset_request')
 def request_password_reset():
     email = request.form['email']
-    return jsonify(auth_reset_request(email))
+    return jsonify(auth_reset_request(email, mail))
 
-@app.route('/password/reset', methods=['POST'])
+
+@app.post('/auth_password_reset')
 def reset_password():
     email = request.form['email']
     reset_code = request.form['reset_code']

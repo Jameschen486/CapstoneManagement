@@ -1,7 +1,13 @@
 import dbAcc
 import authentication
 import string
+import pytest
+import server
+from permission import Role
+from tests import helper
 from error import HTTPError
+
+client = helper.CLIENT
 
 def clear_users():
   curs = dbAcc.conn.cursor()
@@ -10,6 +16,9 @@ def clear_users():
 
 user_d0 = [0, "admin@provider.com", "admin", "them", "adminPassword", 3]
 user_d1 = [1, "Email@provider.com", "me", "them", "password", 0]
+USERS = [
+    {"email": f"Email@provider.com", "password": f"password", "firstName": f"James", "lastName": f"test"}
+]
 #
 #   Update user role tests
 #
@@ -81,13 +90,42 @@ def test_updateUserName1():
 
     clear_users()
 
-def test_reset_req_1():
-    use_d0 = [0, "capstone.management@gmail.com", "me1", "them1", "password1", 1]
+def test_reset_req0():
 
-    dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
-    assert(dbAcc.get_reset_code(use_d0[0]) == None)
+    user_info = USERS[0]
+    client.post('/register', data = user_info)
+    response = client.post('/login', data = user_info)
+    token = response.json["token"]
 
-    authentication.auth_reset_request(use_d0[1])
-    assert(dbAcc.get_reset_code(use_d0[0]) != None)
+    user = dbAcc.get_user_by_email("Email@provider.com")
+    assert dbAcc.get_reset_code(user[0]) is None
+
+    response = client.post('/auth_reset_request', data = {"email": "Email@provider.com"}, headers = helper.token2headers(token))
+    reset_code = dbAcc.get_reset_code(user[0])
+    assert reset_code is not None
+
+    clear_users()
+
+def test_reset0():
+
+    user_info = USERS[0]
+    client.post('/register', data = user_info)
+    response = client.post('/login', data = user_info)
+    token = response.json["token"]
+
+    user = dbAcc.get_user_by_email("Email@provider.com")
+    assert dbAcc.get_reset_code(user[0]) is None
+
+    response = client.post('/auth_reset_request', data = {"email": "Email@provider.com"}, headers = helper.token2headers(token))
+    reset_code = dbAcc.get_reset_code(user[0])
+    assert reset_code is not None
+
+    authentication.auth_password_reset("Email@provider.com", reset_code, "newPassword")
+    reset_code = dbAcc.get_reset_code(user[0])
+    assert reset_code is None
+
+    user1 = dbAcc.get_user_by_email("Email@provider.com")
+    hashedPassword = authentication.getHashOf("newPassword")
+    assert user1[4] == hashedPassword
 
     clear_users()

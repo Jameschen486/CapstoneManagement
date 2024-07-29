@@ -28,7 +28,6 @@ services:
       - FLASK_RUN_PORT=5001
     depends_on:
       - postgres
-      - mailerslurper
     networks:
       - testnet
 
@@ -58,13 +57,6 @@ services:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend
-    networks:
-      - testnet
-
-  mailerslurper:
-    image: marcopas/docker-mailslurper
-    ports:
-      - 2500:2500
     networks:
       - testnet
 
