@@ -29,7 +29,7 @@ def auth_role(token, *args):
     token = str(token).split()
     token = token[1]
     payload = jwt_decode(token)
-    if payload['role'] not in args or payload['role'] < min([int(arg) for arg in args]):
+    if payload['role'] not in args and int(payload['role']) < min([int(arg) for arg in args]):
         raise HTTPError("Insufficent Privelage", 400)
     return payload
 
