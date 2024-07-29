@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ProjectDetailsModal from './ProjectDetailsModal';
 
 const Projects = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -62,6 +64,14 @@ const Projects = () => {
     navigate('/projects/create');
   };
 
+  const handleProjectClick = (projectId) => {
+    setSelectedProjectId(projectId);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedProjectId(null);
+  };
+
   return (
     <div className="projects-container">
       <header className="projects-header">
@@ -76,11 +86,16 @@ const Projects = () => {
         {!loading && !error && projects.length > 0 && (
           <ul>
             {projects.map(project => (
-              <li key={project.projectid}>{project.title}</li>
+            <li key={project.projectid} onClick={() => handleProjectClick(project.projectid)}>
+                {project.title}
+            </li>
             ))}
           </ul>
         )}
       </div>
+      {selectedProjectId && (
+        <ProjectDetailsModal projectId={selectedProjectId} onClose={handleCloseModal} />
+      )}
     </div>
   );
 };
