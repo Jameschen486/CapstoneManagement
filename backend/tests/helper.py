@@ -9,13 +9,13 @@ CLIENT = server.app.test_client()
 
 URL = 'http://localhost:5001'
 
-TABLES = ["channels", "users", "projects", "groups", "grouprequests", "preferences", "skills", "userskills", "projectskills", "notifications", "messages", "accesschannels"]
+TABLES = ["channels", "users", "projects", "groups", "grouprequests", "preferences", "skills", "userskills", "projectskills", "resetcodes", "notifications", "messages", "accesschannels"]
 
 ADMIN = {"email": "admin_email", "password": "admin_password", "firstName": "admin_firstName", "lastName": "admin_lastName"} 
 
 USERS = [
     {"email": f"email{i}", "password": f"password{i}", "firstName": f"firstName{i}", "lastName": f"lastName{i}"} 
-    for i in range(10)
+    for i in range(100)
 ]
 
 SKILLS = [
@@ -23,14 +23,22 @@ SKILLS = [
     for i in range(10)
 ]
 
+GROUP_NAMES = [
+    f"group_name{i}" for i in range(10)
+]
+
+PORJECT_NAMES = [
+    f"project_name{i}" for i in range(10)
+]
+
 def truncate(table:str = None):
     curs = dbAcc.conn.cursor()
 
     if table is None:
-        for table in TABLES:
-            curs.execute(f"TRUNCATE {table} RESTART IDENTITY CASCADE")
+        for t in TABLES:
+            curs.execute(f"TRUNCATE {t} RESTART IDENTITY CASCADE")
     else:
-        curs.execute(f"TRUNCATE {table} RESTART IDENTITY CASCADE")
+        curs.execute(f"TRUNCATE {t} RESTART IDENTITY CASCADE")
 
     dbAcc.conn.commit()
 
@@ -82,3 +90,48 @@ def create_skill(index:int = 0) -> int:
     admin_id, admin_token = get_admin()
     skill_id = CLIENT.post('/skill/create', data = {"userid":admin_id, "skillname":SKILLS[index]["skillname"]}, headers = token2headers(admin_token)).json["skillid"]
     return skill_id
+
+
+def create_group(creator_id:int, creator_token:str, group_name:int = 0, member_indexs:list = []):
+    if type(group_name) is int:
+        group_name = GROUP_NAMES[group_name]
+
+    group_id = CLIENT.post('/group/create', data = {"ownerid":creator_id, "groupname":group_name}, headers = token2headers(creator_token)).json["group_id"]
+    for index in member_indexs:
+        member_id, member_token = create_user(index)
+        join_group(creator_id, creator_token, member_id, member_token, group_id)
+        
+    channel_id = CLIENT.get('/group/channel', data = {"groupid":group_id, "userid":creator_id}, headers = token2headers(creator_token)).json["channelid"]
+
+    return group_id, channel_id
+
+
+def create_project(creator_id:int, creator_token:str, title:int = 0, group_ids:list = []):
+    if type(title) is int:
+        title = PORJECT_NAMES[title]
+
+    project_id = CLIENT.post('/project/create', data = {"userid": creator_id, "ownerid":creator_id, "title":title}, headers = token2headers(creator_token)).json["projectid"]
+
+    admin_id, admin_token = get_admin()
+    for group_id in group_ids:
+        CLIENT.put('/group/assign_project', data = {"groupid":group_id, "projectid":project_id}, headers=token2headers(admin_token))
+
+    channel_id = CLIENT.get('/project/channel', data = {"projectid":project_id, "userid":creator_id}, headers = token2headers(creator_token)).json["channelid"]
+
+    return project_id, channel_id
+
+
+def join_group(creator_id:int, creator_token:int, member_id:int, member_token:int, group_id:int):
+    CLIENT.post('/group/join', data = {"groupid":group_id, "userid":member_id}, headers = token2headers(member_token))
+    CLIENT.post('/group/request/handle', data = {"userid": creator_id, "applicantid": member_id, "groupid": group_id, "accept": True}, headers = token2headers(creator_token))
+
+
+def view_message(channel_id:int, last_msg_id:int = None, latest_message:bool = False) -> list:
+    id, token = get_admin()
+    return CLIENT.get('/channel/messages', data = {"userid":id, "channelid": channel_id, "last_message": last_msg_id, "latest_message": latest_message}, headers = token2headers(token)).json["messages"]
+
+
+def users_channel_ids(user_id:int, user_token:int):
+    channels = CLIENT.get('/users/channels', data = {"userid":user_id, "target_userid":user_id}, headers = token2headers(user_token)).json["channels"]
+    channel_ids = [channel["channelid"] for channel in channels]
+    return channel_ids
