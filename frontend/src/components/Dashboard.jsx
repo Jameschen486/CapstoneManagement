@@ -46,6 +46,10 @@ const Dashboard = () => {
     navigate('/admin');
   };
 
+  const handleProjectsClick = () => {
+    navigate('/projects');
+  };
+
   const handleRoleChange = async (e) => {
     e.preventDefault();
 
@@ -125,14 +129,14 @@ const Dashboard = () => {
       case '1':
         return (
           <div className="dashboard-section">
-            <h2>Client Dashboard</h2>
+            <h2>Tutor Dashboard</h2>
             <p>Here you can manage your projects, view messages, student preferences, and notifications.</p>
           </div>
         );
       case '2':
         return (
           <div className="dashboard-section">
-            <h2>Tutor Dashboard</h2>
+            <h2>Coordinator Dashboard</h2>
             <p>Here you can manage your students, view messages, and notifications.</p>
           </div>
         );
@@ -227,6 +231,36 @@ const Dashboard = () => {
                 <p className="message">{message}</p>
               )}
             </div>
+          </div>
+        );
+      case '4':
+        return (
+          <div className="dashboard-section">
+            <div className='dashboard-header-row'>
+              <h2>Client Dashboard</h2>
+              <div className="dashboard-icons">
+                <div className="icon-container">
+                  <button onClick={() => setShowNotificationModal(true)} aria-label="Notifications">&#128276;</button>
+                  <span className="icon-label">Notifications</span>
+                </div>
+                <div className="icon-container">
+                  <button onClick={() => setShowMessageModal(true)} aria-label="Messages">&#128488;</button>
+                  <span className="icon-label">Messages</span>
+                </div>
+                <div className="icon-container">
+                  <button aria-label="Profile">&#128100;</button>
+                  <span className="icon-label">Profile</span>
+                </div>
+                <div className="icon-container">
+                  <button aria-label="Student Preference">&#128101;</button>
+                  <span className="icon-label">Students</span>
+                </div>
+              </div>
+            </div>
+            <p>Here you can manage your projects, view messages, student preferences and notifications.</p>
+            <div className="icon-container">
+                  <button onClick={handleProjectsClick} aria-label="Projects">&#128202; Manage Projects</button>
+                </div>
           </div>
         );
       default:
