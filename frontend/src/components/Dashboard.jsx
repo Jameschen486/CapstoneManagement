@@ -76,7 +76,7 @@ const Dashboard = () => {
             <p>Here you can manage your students, view messages, and notifications.</p>
           </div>
         );
-      case '3':
+      case '4':
         return (
           <div className="dashboard-section">
             <h2>Admin Dashboard</h2>

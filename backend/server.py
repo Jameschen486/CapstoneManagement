@@ -9,6 +9,7 @@ from projects import Project
 from skills import Skill
 from flask_mail import Mail, Message
 import preference
+from algorithms import allocate
 import permission
 import message, channel
 
@@ -391,6 +392,10 @@ def view_preference_route():
         response, status_code = preference.view_preference(user_id, student_id, role)
         return jsonify(response), status_code
     
+@app.route('/allocate/auto', methods=['GET', 'POST'])
+def allocate_auto():
+    return jsonify(allocate())
+
 @app.route('/channel/io', methods=['PUT'])
 def channel_manual_io():
     token = request.authorization
@@ -490,8 +495,6 @@ def delete_message_route():
     if auth_id(token, userid): 
         response, status_code = message.delete(userid, msgid)
         return jsonify(response), status_code
-
-
 
 
 
