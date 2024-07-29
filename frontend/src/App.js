@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard';
 import Groups from './components/Groups';
 import CreateGroup from './components/CreateGroup';
 import Profile from './components/Profile';
+import Projects from './components/Projects';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" exact element={<Home />} />
           <Route path="/groups" element={<Groups />} />
           <Route path="/create-group" element={<CreateGroup />} />
+          <Route path="/projects" element={<Projects />} />
         </Routes>
       </div>
     </Router>

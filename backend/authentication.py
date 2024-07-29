@@ -1,7 +1,15 @@
 import hashlib
 import random
+import math
 import dbAcc
 import jwt
+import os
+import sys
+import smtplib
+import datetime
+import ssl
+from flask_mail import Message
+from email.message import EmailMessage
 
 from error import HTTPError
 key = "rngwarriors"
@@ -90,3 +98,38 @@ def updateUserName(user_id, firstName, lastName):
     dbAcc.update_user_name(int(user_id), firstName, lastName)
     return True, 200
 
+def auth_reset_request(email, mail):
+    user = dbAcc.get_user_by_email(email)
+    if user is None:
+        raise HTTPError('Invalid email or password, please try again', 400)
+
+    code = random.randint(100000, 999999)
+    timestamp = datetime.datetime.now()
+
+    dbAcc.create_reset_code(user[0], code, timestamp)
+
+    #setting email
+    msg = Message(
+        'Password reset code for Capstone Management',
+        recipients=[email],
+        body=f"""
+        Hello {user[2]},
+
+        Your password reset code for streams is {code}.
+
+        If you did not make this request, you can ignore this email.
+        """
+    )
+    mail.send(msg)
+
+    return
+
+def auth_password_reset(email, reset_code, new_password):
+    user = dbAcc.get_user_by_email(email)
+    if (reset_code != dbAcc.get_reset_code(user[0])):
+        raise HTTPError('Incorrect reset code, try again.', 400)
+
+    hashedPassword = getHashOf(new_password)
+    dbAcc.update_password(user[0], hashedPassword)
+    dbAcc.remove_reset_code(user[0])
+    return
