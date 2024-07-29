@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProjectDetailsModal from './ProjectDetailsModal';
+import '../css/Projects.css';
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -75,23 +76,23 @@ const Projects = () => {
   return (
     <div className="projects-container">
       <header className="projects-header">
-        <h1>Projects</h1>
-        <button onClick={handleCreateProject} className="create-project-button">Create New Project</button>
+        <h1>Your Projects</h1>
       </header>
       <div className="projects-content">
         {loading && <p>Loading projects...</p>}
         {error && <p>Error: {error}</p>}
         {!loading && !error && projects.length === 0 && <p>No projects available.</p>}
-        <p>Number of projects: {projects.length}</p>
+        <h2 className='NumofProjects'>Number of projects: {projects.length}</h2>
         {!loading && !error && projects.length > 0 && (
           <ul>
             {projects.map(project => (
             <li key={project.projectid} onClick={() => handleProjectClick(project.projectid)}>
-                {project.title}
+                <div className='project-title'>{project.title}</div>
             </li>
             ))}
           </ul>
         )}
+        <button onClick={handleCreateProject} className="create-project-button">Create New Project</button>
       </div>
       {selectedProjectId && (
         <ProjectDetailsModal projectId={selectedProjectId} onClose={handleCloseModal} />
