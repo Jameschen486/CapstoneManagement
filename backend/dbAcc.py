@@ -512,24 +512,6 @@ def unassign_project_from_group(groupid: int):
   if projectid is not None:
     dbChannel.unassign_project(projectid, groupid)
   
-def get_assigned_users(projectid: int):
-  ''' Returns all students assigned to a project
-  
-  Parameters:
-    - projectid (int)
-    
-  Returns:
-    - [Int], userids of assigned users
-  '''
-  curs = conn.cursor()
-  curs.execute("""SELECT users.userid FROM groups 
-               JOIN users ON users.groupif = groups.groupid 
-               WHERE assign = %s""", (projectid,))
-  ret = []
-  for rec in ret:
-    ret.append(rec[0])
-  return ret
-
 #------------------------
 # Skills
 
@@ -826,7 +808,7 @@ def get_all_preferences():
 #--------
 # Notifications
 
-def create_notif(userid: int, content: str) -> int:
+def create_notif(userid: int, timestamp: datetime, content: str) -> int:
   ''' Creates a notification for given user
   
   Parameters:
@@ -838,7 +820,7 @@ def create_notif(userid: int, content: str) -> int:
     notificationid, id of notification just created
   '''
   curs = conn.cursor()
-  curs.execute("INSERT INTO notifications (userid, isnew, content) VALUES (%s, %s, %s) RETURNING notifid", (userid, True, content))
+  curs.execute("INSERT INTO notifications (userid, created, isnew, content) VALUES (%s, %s, %s, %s) RETURNING notifid", (userid, timestamp, True, content))
   conn.commit()
   return curs.fetchone()[0]
 
