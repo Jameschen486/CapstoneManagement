@@ -10,8 +10,8 @@ const Dashboard = () => {
   const [user, setUser] = useState({});
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [email, setEmail] = useState("");
 
   useEffect(() => {
@@ -45,8 +45,7 @@ const Dashboard = () => {
         last: Userdata.last_name,
         email: Userdata.email,
       });
-      setFirstName(Userdata.first_name);
-      setLastName(Userdata.last_name);
+      
       setEmail(Userdata.email);
     //   {"userid" : user.userid, "email" : user.email, "first_name" : user.first_name, "last_name" : user.last_name, "role" : user.role, "groupid" : user.groupid}
     } catch (error) {
@@ -63,14 +62,14 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
 
       const formdata = new FormData();
-      formdata.append('user_id', userId);
-      formdata.append('firstName', firstName);
-      formdata.append('lastName', lastName,);
+      formdata.append('email', email);
+      formdata.append('reset_code', code);
+      formdata.append('new_password', newPassword);
 
-      const response = await fetch(`http://localhost:5001/updateUserName`, {
+      const response = await fetch(`http://localhost:5001/auth_password_reset`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          // Authorization: `Bearer ${token}`,
         },
         body: formdata
       });
@@ -81,6 +80,7 @@ const Dashboard = () => {
     catch (error) {
       console.error('Error updating user data:', error);
     }
+    handleLogout();
     // Add your form submission logic here
   };
   
@@ -96,30 +96,6 @@ const Dashboard = () => {
   const handleBack = () => {
     navigate('/dashboard');
   };
-
-  const handleReset = async (e) => {
-    navigate('/reset');
-    try {
-      const userId = localStorage.getItem('userId');
-      const token = localStorage.getItem('token');
-
-      const formdata = new FormData();
-      formdata.append('email', email);
-
-      const response = await fetch(`http://localhost:5001/auth_reset_request`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formdata
-      });
-      const output = await response.json();
-      console.log(output)
-    }
-    catch (error) {
-      console.error('Error updating user data:', error);
-    }
-  };
   
   return (
     <div className="dashboard-container">
@@ -130,25 +106,22 @@ const Dashboard = () => {
       <div className="dashboard-content">
         <div className="dashboard-section">
             <div className='dashboard-header-row'>
-                <h2>Profile</h2>
-                <p>Firstname:
-                  <input type="text"  name="First" placeholder={firstName} onChange={(e) => setFirstName(e.target.value)}></input>
+                <h2>Reset</h2>
+                <p>Code:
+                  <input type="text"  name="First" onChange={(e) => setCode(e.target.value)}></input>
                 </p>
                 
-                <p>LastName:
-                <input type="text" name="Last" placeholder={lastName} onChange={(e) => setLastName(e.target.value)}></input>
+                <p>New Password:
+                <input type="text" name="Last" onChange={(e) => setNewPassword(e.target.value)}></input>
                 </p>
-                
-                <p>Email:
-                <p>{email}</p>
-                </p>
+
                 <button onClick={(e) => handleSubmit(e)}> update </button>
                 
             </div>
         </div>
-        <div className="dashboard-section">
+        {/* <div className="dashboard-section">
           <button onClick={(e) => handleReset(e)}> Reset Password </button>
-        </div>
+        </div> */}
       </div>
       <Modal show={showNotificationModal} handleClose={() => setShowNotificationModal(false)} title="Notifications">
         <p>No notifications yet.</p>
