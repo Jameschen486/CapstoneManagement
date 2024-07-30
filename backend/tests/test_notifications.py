@@ -50,7 +50,7 @@ def test_view_notifications():
     dbAcc.create_notif(user_id, "Test notification 2")
 
     # View notifications for the user
-    response = helper.CLIENT.get('/notifications/view', data={"userid": user_id}, headers=helper.token2headers(token))
+    response = helper.CLIENT.get('/notifications/view', query_string={"userid": user_id}, headers=helper.token2headers(token))
     assert response.status_code == 200
 
 
@@ -73,13 +73,13 @@ def test_message_send_notification():
     assert response.status_code == 201
 
     # Check notifications for the receiver
-    response = helper.CLIENT.get('/notifications/view', data={"userid": user_id2}, headers=helper.token2headers(token2))
+    response = helper.CLIENT.get('/notifications/view', query_string={"userid": user_id2}, headers=helper.token2headers(token2))
     assert response.status_code == 200
     data = response.get_json()
     assert data[0]["content"] == f"New message in channel {channel_id}"
 
     # Check the sender is not receiving the notification
-    response2 = helper.CLIENT.get('/notifications/view', data={"userid": user_id}, headers=helper.token2headers(token))
+    response2 = helper.CLIENT.get('/notifications/view', query_string={"userid": user_id}, headers=helper.token2headers(token))
     assert response2.status_code == 200
     data2 = response2.get_json()
     assert len(data2) == 1
@@ -96,16 +96,66 @@ def test_view_individual_notification():
     response = helper.CLIENT.post('/message/send', data={"userid": user_id, "content": "Hello!", "senderid": user_id, "channelid": channel_id}, headers=helper.token2headers(token))
     assert response.status_code == 201
 
-    notif_response = helper.CLIENT.get('/notifications/view', data={"userid": user_id2}, headers=helper.token2headers(token2))
+    notif_response = helper.CLIENT.get('/notifications/view', query_string={"userid": user_id2}, headers=helper.token2headers(token2))
     assert notif_response.status_code == 200
     notifications = notif_response.get_json()
     assert len(notifications) > 1
     notif_id = notifications[0]["notifid"]
 
     # User 2 views the specific notification
-    individual_notif_response = helper.CLIENT.get('/notification/view', data={"userid": user_id2, "notifid": notif_id}, headers=helper.token2headers(token2))
+    individual_notif_response = helper.CLIENT.get('/notification/view', query_string={"userid": user_id2, "notifid": notif_id}, headers=helper.token2headers(token2))
     assert individual_notif_response.status_code == 200
     notification_data = individual_notif_response.get_json()
     assert notification_data["notifid"] == notif_id
     assert notification_data["content"] == f"New message in channel {channel_id}"
 
+
+
+def test_delete_notification():
+
+    helper.truncate()
+    user_id, token = helper.create_user(role=Role.STUDENT)
+    user_id2, token2 = helper.create_user(index=1, role=Role.STUDENT)
+    group_id, channel_id = helper.create_group(user_id, token)
+    helper.CLIENT.post('/group/join', data={"groupid": group_id, "userid": user_id2}, headers=helper.token2headers(token2))
+
+    # Verify the notification was created
+    notif_response = helper.CLIENT.get('/notifications/view', query_string={"userid": user_id}, headers=helper.token2headers(token))
+    assert notif_response.status_code == 200
+    notifications = notif_response.get_json()
+    assert len(notifications) == 1
+    notif_id = notifications[0]["notifid"]
+
+    # Delete the notification
+    delete_response = helper.CLIENT.delete('/notification/delete', query_string={"userid": user_id, "notifid": notif_id}, headers=helper.token2headers(token))
+    assert delete_response.status_code == 200
+    assert delete_response.get_json()["message"] == f"Successfully deleted notification {notif_id}"
+
+    # Verify the notification is deleted
+    notif_response = helper.CLIENT.get('/notifications/view', query_string={"userid": user_id}, headers=helper.token2headers(token))
+    assert notif_response.status_code == 200
+    notifications = notif_response.get_json()
+    assert len(notifications) == 0
+
+def test_delete_all_notifications():
+    helper.truncate()
+    user_id, token = helper.create_user(role=Role.STUDENT)
+    dbAcc.create_notif(user_id, "Notification 1")
+    dbAcc.create_notif(user_id, "Notification 2")
+
+    # Verify notifications are created
+    notif_response = helper.CLIENT.get('/notifications/view', query_string={"userid": user_id}, headers=helper.token2headers(token))
+    assert notif_response.status_code == 200
+    notifications = notif_response.get_json()
+    assert len(notifications) == 2
+
+    # Delete all notifications
+    delete_response = helper.CLIENT.delete('/notifications/delete', query_string={"userid": user_id}, headers=helper.token2headers(token))
+    assert delete_response.status_code == 200
+    assert delete_response.get_json()["message"] == "All notifications deleted successfully"
+
+    # Verify all notifications are deleted
+    notif_response = helper.CLIENT.get('/notifications/view', query_string={"userid": user_id}, headers=helper.token2headers(token))
+    assert notif_response.status_code == 200
+    notifications = notif_response.get_json()
+    assert len(notifications) == 0

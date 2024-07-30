@@ -101,7 +101,7 @@ def create_group(creator_id:int, creator_token:str, group_name:int = 0, member_i
         member_id, member_token = create_user(index)
         join_group(creator_id, creator_token, member_id, member_token, group_id)
         
-    channel_id = CLIENT.get('/group/channel', data = {"groupid":group_id, "userid":creator_id}, headers = token2headers(creator_token)).json["channelid"]
+    channel_id = CLIENT.get('/group/channel', query_string = {"groupid":group_id, "userid":creator_id}, headers = token2headers(creator_token)).json["channelid"]
 
     return group_id, channel_id
 

@@ -505,8 +505,7 @@ def delete_message_route():
 @app.route('/notifications/view', methods=['GET'])
 def view_notifications_route():
     token = request.authorization
-    data = request.form
-    user_id = int(data['userid'])
+    user_id = int(request.args.get('userid'))
 
     if auth_id(token, user_id):
         response, status_code = notifications.view_notifications(user_id)
@@ -515,13 +514,34 @@ def view_notifications_route():
 @app.route('/notification/view', methods=['GET'])
 def view_individual_notification_route():
     token = request.authorization
-    data = request.form
-    user_id = int(data['userid'])
-    notif_id = int(data['notifid'])
+    user_id = int(request.args.get('userid'))
+    notif_id= int(request.args.get('notifid'))
     
     if auth_id(token, user_id):
         response, status_code = notifications.view_notification(user_id, notif_id)
         return jsonify(response), status_code
+    
+@app.route('/notification/delete', methods=['DELETE'])
+def delete_notification_route():
+    token = request.authorization
+    data = request.args
+    user_id = int(data.get('userid'))
+    notif_id = int(data.get('notifid'))
+    
+    if auth_id(token, user_id):
+        response, status_code = notifications.delete_notification(user_id, notif_id)
+        return jsonify(response), status_code
+    
+@app.route('/notifications/delete', methods=['DELETE'])
+def delete_notifications_route():
+    token = request.authorization
+    data = request.args
+    user_id = int(data.get('userid'))
+
+    if auth_id(token, user_id):
+        response, status_code = notifications.delete_all_notifications(user_id)
+        return jsonify(response), status_code
+
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5001)
