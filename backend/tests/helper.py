@@ -101,7 +101,7 @@ def create_group(creator_id:int, creator_token:str, group_name:int = 0, member_i
         member_id, member_token = create_user(index)
         join_group(creator_id, creator_token, member_id, member_token, group_id)
         
-    channel_id = CLIENT.get('/group/channel', data = {"groupid":group_id, "userid":creator_id}, headers = token2headers(creator_token)).json["channelid"]
+    channel_id = CLIENT.get('/group/channel', query_string = {"groupid":group_id, "userid":creator_id}, headers = token2headers(creator_token)).json["channelid"]
 
     return group_id, channel_id
 
@@ -116,7 +116,7 @@ def create_project(creator_id:int, creator_token:str, title:int = 0, group_ids:l
     for group_id in group_ids:
         CLIENT.put('/group/assign_project', data = {"groupid":group_id, "projectid":project_id}, headers=token2headers(admin_token))
 
-    channel_id = CLIENT.get('/project/channel', data = {"projectid":project_id, "userid":creator_id}, headers = token2headers(creator_token)).json["channelid"]
+    channel_id = CLIENT.get('/project/channel', query_string = {"projectid":project_id, "userid":creator_id}, headers = token2headers(creator_token)).json["channelid"]
 
     return project_id, channel_id
 
@@ -128,10 +128,10 @@ def join_group(creator_id:int, creator_token:int, member_id:int, member_token:in
 
 def view_message(channel_id:int, last_msg_id:int = None, latest_message:bool = False) -> list:
     id, token = get_admin()
-    return CLIENT.get('/channel/messages', data = {"userid":id, "channelid": channel_id, "last_message": last_msg_id, "latest_message": latest_message}, headers = token2headers(token)).json["messages"]
+    return CLIENT.get('/channel/messages', query_string = {"userid":id, "channelid": channel_id, "last_message": last_msg_id, "latest_message": latest_message}, headers = token2headers(token)).json["messages"]
 
 
 def users_channel_ids(user_id:int, user_token:int):
-    channels = CLIENT.get('/users/channels', data = {"userid":user_id, "target_userid":user_id}, headers = token2headers(user_token)).json["channels"]
+    channels = CLIENT.get('/users/channels', query_string = {"userid":user_id, "target_userid":user_id}, headers = token2headers(user_token)).json["channels"]
     channel_ids = [channel["channelid"] for channel in channels]
     return channel_ids

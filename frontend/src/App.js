@@ -10,6 +10,7 @@ import CreateGroup from './components/CreateGroup';
 import Profile from './components/Profile';
 import Projects from './components/Projects';
 import CreateProject from './components/CreateProject';
+import Admin from './components/Admin'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/create-group" element={<CreateGroup />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/create" element={<CreateProject />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </div>
     </Router>
