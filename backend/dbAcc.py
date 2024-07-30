@@ -523,10 +523,10 @@ def get_assigned_users(projectid: int):
   '''
   curs = conn.cursor()
   curs.execute("""SELECT users.userid FROM groups 
-               JOIN users ON users.groupif = groups.groupid 
+               JOIN users ON users.groupid = groups.groupid 
                WHERE assign = %s""", (projectid,))
   ret = []
-  for rec in ret:
+  for rec in curs:
     ret.append(rec[0])
   return ret
 

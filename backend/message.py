@@ -18,6 +18,13 @@ def send(userid:int, content:str, senderid:int, channelid:int):
     permission.send_message(userid, channelid, senderid)
     msgid = dbAcc.create_message(channelid, senderid, content)
 
+    # Send notification to all users in the channel except the sender
+    users = dbAcc.get_channel_members(channelid)
+    notification_content = f"New message in channel {channelid}"
+    for user in users:
+        if user[0] != senderid:
+            dbAcc.create_notif(user[0], notification_content)
+
     return {"message": "Message sent.", "messageid": msgid}, 201
     
 

@@ -154,6 +154,11 @@ class Project:
         new_project_info.pop('channel')
         dbAcc.update_project(*new_project_info.values())
 
+        # Send notification to all users assigned to this project
+        assigned_users = dbAcc.get_assigned_users(projectid)
+        content = f"The project {title} has been updated."
+        for user_id in assigned_users:
+            dbAcc.create_notif(user_id, content)
         return {"message": "Project updated.", "projectid": projectid}, 200
 
 

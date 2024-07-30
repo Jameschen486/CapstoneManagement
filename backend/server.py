@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 # from flask_mysqldb import MySQL
 import groups
+import notifications
 
 from authentication import login, register, jwt_decode, return_user, auth_id, auth_role, updateUserRole, updateUserName, auth_password_reset, auth_reset_request
 from error import HTTPError
@@ -496,7 +497,26 @@ def delete_message_route():
         response, status_code = message.delete(userid, msgid)
         return jsonify(response), status_code
 
+@app.route('/notifications/view', methods=['GET'])
+def view_notifications_route():
+    token = request.authorization
+    data = request.form
+    user_id = int(data['userid'])
 
+    if auth_id(token, user_id):
+        response, status_code = notifications.view_notifications(user_id)
+        return jsonify(response), status_code
+    
+@app.route('/notification/view', methods=['GET'])
+def view_individual_notification_route():
+    token = request.authorization
+    data = request.form
+    user_id = int(data['userid'])
+    notif_id = int(data['notifid'])
+    
+    if auth_id(token, user_id):
+        response, status_code = notifications.view_notification(user_id, notif_id)
+        return jsonify(response), status_code
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5001)
