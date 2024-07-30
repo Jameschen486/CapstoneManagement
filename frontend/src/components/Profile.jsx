@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Profile.css';
 import Modal from './Modal';
+import { BackButton, LogoutButton } from './utils';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -44,11 +45,7 @@ const Profile = () => {
       const Userdata = await response.json();
       setHasData(true)
       console.log('User data:', Userdata);
-      setUser({
-        first: Userdata.first_name,
-        last: Userdata.last_name,
-        email: Userdata.email,
-      });
+      setUser(Userdata);
       setFirstName(Userdata.first_name);
       setLastName(Userdata.last_name);
       setEmail(Userdata.email);
@@ -88,14 +85,11 @@ const Profile = () => {
     // Add your form submission logic here
   };
   
-  const handleLogout = () => {
-    // Clear any stored user information (e.g., token)
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('groupId');
-    navigate('/');
-  };
+  // const HandleLogout = () => {
+  //   const navigate = useNavigate();
+  //   localStorage.clear();
+  //   navigate('/');
+  // };
 
   const toggleUserDetailSection = () => {
     setIsUserDetailSectionCollapsed(!isUserDetailSectionCollapsed);
@@ -230,41 +224,21 @@ const Profile = () => {
     }
   };
   
-  const handleBack = () => {
-    navigate('/dashboard');
-  };
+  // const handleBack = () => {
+  //   navigate('/dashboard');
+  // };
 
   const handleReset = async (e) => {
     navigate('/reset');
-    try {
-      const userId = localStorage.getItem('userId');
-      const token = localStorage.getItem('token');
-
-      const formdata = new FormData();
-      formdata.append('email', email);
-
-      const response = await fetch(`http://localhost:5001/auth_reset_request`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formdata
-      });
-      const output = await response.json();
-      console.log(output)
-    }
-    catch (error) {
-      console.error('Error updating user data:', error);
-    }
   };
   
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         {/* <h1>Profile <button onClick={handleBack} className="back-button">Back to Dashboard</button></h1> */}
-        <button onClick={handleLogout} className="logout-button">Logout</button>
+        <BackButton />
         <h1>Profile</h1>
-        <button onClick={handleBack} className="back-button">Back</button>
+        <LogoutButton />
       </header>
       <div className="dashboard-profile-content">
         <div className="dashboard-profile-section">
