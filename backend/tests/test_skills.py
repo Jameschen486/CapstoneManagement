@@ -16,7 +16,7 @@ def test_create_1():
     assert response.status_code == 201
     skill_id = response.json["skillid"]
 
-    response = client.get('/skills/view', data = {"userid":user_id}, headers = helper.token2headers(token))
+    response = client.get('/skills/view', query_string = {"userid":user_id}, headers = helper.token2headers(token))
     assert response.status_code == 200
     json = response.json
 
@@ -36,9 +36,9 @@ def test_create_2():
     skill_id1 = client.post('/skill/create', data = {"userid":coordinator_id, "skillname":"skill_coordinator1"}, headers = helper.token2headers(coordinator_token)).json["skillid"]
     skill_id2 = client.post('/skill/create', data = {"userid":coordinator_id, "skillname":"skill_coordinator2"}, headers = helper.token2headers(coordinator_token)).json["skillid"]
     
-    json_admin = client.get('/skills/view', data = {"userid":admin_id}, headers = helper.token2headers(admin_token)).json
-    json_coordinator = client.get('/skills/view', data = {"userid":coordinator_id}, headers = helper.token2headers(coordinator_token)).json
-    json_student = client.get('/skills/view', data = {"userid":student_id}, headers = helper.token2headers(student_token)).json
+    json_admin = client.get('/skills/view', query_string = {"userid":admin_id}, headers = helper.token2headers(admin_token)).json
+    json_coordinator = client.get('/skills/view', query_string = {"userid":coordinator_id}, headers = helper.token2headers(coordinator_token)).json
+    json_student = client.get('/skills/view', query_string = {"userid":student_id}, headers = helper.token2headers(student_token)).json
 
 
     # info of skills are correct, and they are accessible to everyone
@@ -66,20 +66,20 @@ def test_student():
 
     response = client.post('/skill/add/student', data = {"userid": student_id, "studentid": student_id, "skillid": skill_id0}, headers = helper.token2headers(student_token))
     assert response.status_code == 201
-    response = client.get('/skills/view/student', data = {"userid": student_id, "studentid": student_id}, headers = helper.token2headers(student_token))
+    response = client.get('/skills/view/student', query_string = {"userid": student_id, "studentid": student_id}, headers = helper.token2headers(student_token))
     assert response.status_code == 200
     assert response.json[str(skill_id0)] == helper.SKILLS[0]["skillname"]
 
     response = client.post('/skill/add/student', data = {"userid": student_id, "studentid": student_id, "skillid": skill_id1}, headers = helper.token2headers(student_token))
     assert response.status_code == 201
-    response = client.get('/skills/view/student', data = {"userid": tutor_id, "studentid": student_id}, headers = helper.token2headers(tutor_token))
+    response = client.get('/skills/view/student', query_string = {"userid": tutor_id, "studentid": student_id}, headers = helper.token2headers(tutor_token))
     assert response.status_code == 200
     assert response.json[str(skill_id0)] == helper.SKILLS[0]["skillname"]
     assert response.json[str(skill_id1)] == helper.SKILLS[1]["skillname"]
 
     response = client.delete('/skill/remove/student', data = {"userid": student_id, "studentid": student_id, "skillid": skill_id0}, headers = helper.token2headers(student_token))
     assert response.status_code == 200
-    response = client.get('/skills/view/student', data = {"userid": student_id, "studentid": student_id}, headers = helper.token2headers(student_token))
+    response = client.get('/skills/view/student', query_string = {"userid": student_id, "studentid": student_id}, headers = helper.token2headers(student_token))
     assert response.status_code == 200
     assert str(skill_id0) not in response.json.keys()
 
