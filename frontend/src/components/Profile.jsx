@@ -100,10 +100,10 @@ const Profile = () => {
         <h1>Profile</h1>
         <button onClick={handleBack} className="back-button">Back</button>
       </header>
-      <div className="dashboard-content">
-        <div className="dashboard-section">
+      <div className="dashboard-profile-content">
+        <div className="dashboard-profile-section">
           <h2>User Detail</h2>
-            <div className='dashboard-header-row'>
+            <div className='dashboard-profile-row'>
                 {console.log(user.first)}
                 <p><strong>Firstname:</strong>
                   {firstName}
@@ -115,9 +115,7 @@ const Profile = () => {
                 
                 <p><strong>Email:</strong>
                 <p>{email}</p>
-                </p>
-                
-                
+                </p>       
             </div>
           <button onClick={toggleUserDetailSection} className="toggle-button">
             {isUserDetailSectionCollapsed ? 'Update User Detail' : 'Close'}
@@ -134,6 +132,9 @@ const Profile = () => {
               <button type="submit">Save Changes</button>
             </form>
           )}
+          <div className='user-skills-section'>
+            <h2>User Skills</h2>
+          </div>
         </div>
       </div>
       <Modal show={showNotificationModal} handleClose={() => setShowNotificationModal(false)} title="Notifications">
