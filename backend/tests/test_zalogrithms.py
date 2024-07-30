@@ -63,6 +63,6 @@ def test():
     client.post('/preference/add', data={"user_id": user[8], "project_ids": [proj[0], proj[1], proj[2]], "ranks": ["1", "2", "3"]}, headers=helper.token2headers(token[8]))
         
     print(client.get('/allocate/auto').get_json())
-    assert False
+    # assert False
     
 allocate()
