@@ -126,7 +126,7 @@ def auth_reset_request(email, mail):
 
 def auth_password_reset(email, reset_code, new_password):
     user = dbAcc.get_user_by_email(email)
-    if (reset_code != dbAcc.get_reset_code(user[0])):
+    if (reset_code != dbAcc.get_reset_code(user[0]).code):
         raise HTTPError('Incorrect reset code, try again.', 400)
 
     hashedPassword = getHashOf(new_password)

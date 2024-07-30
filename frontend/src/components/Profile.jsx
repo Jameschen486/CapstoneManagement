@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Profile.css';
 import Modal from './Modal';
+import { BackButton, LogoutButton } from './utils';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -44,11 +45,7 @@ const Profile = () => {
       const Userdata = await response.json();
       setHasData(true)
       console.log('User data:', Userdata);
-      setUser({
-        first: Userdata.first_name,
-        last: Userdata.last_name,
-        email: Userdata.email,
-      });
+      setUser(Userdata);
       setFirstName(Userdata.first_name);
       setLastName(Userdata.last_name);
       setEmail(Userdata.email);
@@ -59,8 +56,6 @@ const Profile = () => {
     return;
   };
 
-  // console.log('User data:', userData);
-  console.log("outside Async");
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -88,7 +83,13 @@ const Profile = () => {
       console.error('Error updating user data:', error);
     }
     // Add your form submission logic here
-};
+  };
+  
+  // const HandleLogout = () => {
+  //   const navigate = useNavigate();
+  //   localStorage.clear();
+  //   navigate('/');
+  // };
 
   const toggleUserDetailSection = () => {
     setIsUserDetailSectionCollapsed(!isUserDetailSectionCollapsed);
@@ -97,11 +98,7 @@ const Profile = () => {
   const toggleSkillsSection = () => {
     setIsSkillsSectionCollapsed(!isSkillsSectionCollapsed);
   };
-
-  const handleBack = () => {
-    navigate('/dashboard');
-  };
-
+  
   const fetchSkills = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -226,12 +223,22 @@ const Profile = () => {
       alert(`Error removing skill: ${error.message}`);
     }
   };
+  
+  // const handleBack = () => {
+  //   navigate('/dashboard');
+  // };
 
+  const handleReset = async (e) => {
+    navigate('/reset');
+  };
+  
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
+        {/* <h1>Profile <button onClick={handleBack} className="back-button">Back to Dashboard</button></h1> */}
+        <BackButton />
         <h1>Profile</h1>
-        <button onClick={handleBack} className="back-button">Back</button>
+        <LogoutButton />
       </header>
       <div className="dashboard-profile-content">
         <div className="dashboard-profile-section">
@@ -253,7 +260,7 @@ const Profile = () => {
                 <input type="text" name="Last" value={lastName} onChange={(e) => setLastName(e.target.value)} />
               </p>
               <p>Email: {email}</p>
-              <button type="submit">Save Changes</button>
+              <button onClick={(e) => handleSubmit(e)}> update </button>
             </form>
           )}
           <h2 className='skills-header'>User Skills</h2>
@@ -291,6 +298,9 @@ const Profile = () => {
               </div>
             )}
           </div>
+        </div>
+        <div className="dashboard-section">
+          <button onClick={(e) => handleReset(e)}> Reset Password </button>
         </div>
       </div>
     </div>
