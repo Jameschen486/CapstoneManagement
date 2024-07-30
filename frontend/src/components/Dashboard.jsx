@@ -113,7 +113,7 @@ const Dashboard = () => {
                   <span className="icon-label">Notifications</span>
                 </div>
                 <div className="icon-container">
-                  <button onClick={() => setShowMessageModal(true)} aria-label="Messages">&#128488;</button>
+                  <button onClick={() => setShowMessageModal(true)} aria-label="Messages">&#128172;</button>
                   <span className="icon-label">Messages</span>
                 </div>
                 <div className="icon-container">
@@ -154,7 +154,7 @@ const Dashboard = () => {
                   <span className="icon-label">Notifications</span>
                 </div>
                 <div className="icon-container">
-                  <button onClick={() => setShowMessageModal(true)} aria-label="Messages">&#128488;</button>
+                  <button onClick={() => setShowMessageModal(true)} aria-label="Messages">&#128172;</button>
                   <span className="icon-label">Messages</span>
                 </div>
                 <div className="icon-container">
@@ -162,16 +162,16 @@ const Dashboard = () => {
                   <span className="icon-label">Profile</span>
                 </div>
                 <div className="icon-container">
-                  <button onClick={handleAdminClick} aria-label="Admin">
-                    <img src="/images/admin_icon.png" alt="Admin" />
-                  </button>
+                  <button onClick={handleAdminClick} aria-label="Admin">&#128119;</button>
                   <span className="icon-label">Admin</span>
                 </div>
               </div>
             </div>
             <p>Here you can manage your systems, view messages, and notifications.</p>
             <div className="role-change-section">
+              <h3>Modify User Role:</h3>
               <button onClick={toggleRoleSection} className="role-change-toggle-button">
+                &#9997;
                 {isRoleSectionCollapsed ? 'Open Change User Role' : 'Close Change User Role'}
               </button>
               {!isRoleSectionCollapsed && !formSubmitted && (

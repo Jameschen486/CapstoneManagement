@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../css/CreateGroup.css'
 
 const CreateGroup = () => {
   const [groupName, setGroupName] = useState('');
@@ -28,7 +29,7 @@ const CreateGroup = () => {
       const data = JSON.parse(text);
       alert('Group created successfully!');
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/groups');
       }, 2000);  // Redirect after 2 seconds
     } catch (error) {
       console.error('Error creating group:', error);
@@ -36,16 +37,27 @@ const CreateGroup = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate('/groups');
+  };
+
   return (
-    <div>
-      <h1>Create Group</h1>
-      <input
-        type="text"
-        value={groupName}
-        onChange={(e) => setGroupName(e.target.value)}
-        placeholder="Group Name"
-      />
-      <button onClick={handleCreateGroup}>Create Group</button>
+    <div className='create-group-container'>
+      <header className='create-group-header'>
+        <h1>Create Group</h1>
+        <button onClick={handleBack} className="back-button">Back to Groups</button>
+      </header>
+      <div className='content'>
+        <p>Enter Group Name:</p>
+        <input
+          className='group-name-input'
+          type="text"
+          value={groupName}
+          onChange={(e) => setGroupName(e.target.value)}
+          placeholder="Group Name"
+        />
+        <button onClick={handleCreateGroup} className='create-group-button'>Create Group</button>
+      </div>
     </div>
   );
 };
