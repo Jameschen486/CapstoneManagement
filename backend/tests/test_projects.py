@@ -17,7 +17,7 @@ def test_create_1():
     assert response.status_code == 201
     project_id = response.json["projectid"]
 
-    response = client.get('/project/details', data = {"userid":user_id, "projectid":project_id}, headers = helper.token2headers(token))
+    response = client.get('/project/details', query_string = {"userid":user_id, "projectid":project_id}, headers = helper.token2headers(token))
     assert response.status_code == 200
     json = response.json
 
@@ -46,9 +46,9 @@ def test_create_2():
     project_id1 = client.post('/project/create', data = {"userid":user_id0, "ownerid":user_id0, "title":"project_title1"}, headers = helper.token2headers(token0)).json["projectid"]
     project_id2 = client.post('/project/create', data = {"userid":user_id1, "ownerid":user_id1, "title":"project_title2"}, headers = helper.token2headers(token1)).json["projectid"]
 
-    json0 = client.get('/project/details', data = {"userid":user_id0, "projectid":project_id0}, headers = helper.token2headers(token0)).json
-    json1 = client.get('/project/details', data = {"userid":user_id0, "projectid":project_id1}, headers = helper.token2headers(token0)).json
-    json2 = client.get('/project/details', data = {"userid":user_id1, "projectid":project_id2}, headers = helper.token2headers(token1)).json
+    json0 = client.get('/project/details', query_string = {"userid":user_id0, "projectid":project_id0}, headers = helper.token2headers(token0)).json
+    json1 = client.get('/project/details', query_string = {"userid":user_id0, "projectid":project_id1}, headers = helper.token2headers(token0)).json
+    json2 = client.get('/project/details', query_string = {"userid":user_id1, "projectid":project_id2}, headers = helper.token2headers(token1)).json
 
     # info of projects are correct
     assert (
@@ -66,7 +66,7 @@ def test_create_2():
     )
 
     # user_1 can't access the project of user_2
-    response = client.get('/project/details', data = {"userid":user_id1, "projectid":project_id0}, headers = helper.token2headers(token1))
+    response = client.get('/project/details', query_string = {"userid":user_id1, "projectid":project_id0}, headers = helper.token2headers(token1))
     assert response.status_code == 403
 
 
@@ -80,8 +80,8 @@ def test_update():
     assert response.status_code == 200
     assert response.json["projectid"] == project_id0
 
-    json0 = client.get('/project/details', data = {"userid":user_id, "projectid":project_id0}, headers = helper.token2headers(token)).json
-    json1 = client.get('/project/details', data = {"userid":user_id, "projectid":project_id1}, headers = helper.token2headers(token)).json
+    json0 = client.get('/project/details', query_string = {"userid":user_id, "projectid":project_id0}, headers = helper.token2headers(token)).json
+    json1 = client.get('/project/details', query_string = {"userid":user_id, "projectid":project_id1}, headers = helper.token2headers(token)).json
     
     # title altered
     assert json0["title"] == "new title"
@@ -103,13 +103,13 @@ def test_delete():
     # can not delete others project
     response = client.delete('/project/delete', data = {"userid":user_id1, "projectid":project_id0}, headers = helper.token2headers(token1))
     assert response.status_code == 403
-    assert client.get('/project/details', data = {"userid":user_id0, "projectid":project_id0}, headers = helper.token2headers(token0)).status_code == 200
+    assert client.get('/project/details', query_string = {"userid":user_id0, "projectid":project_id0}, headers = helper.token2headers(token0)).status_code == 200
 
     # project deleted
     response = client.delete('/project/delete', data = {"userid":user_id0, "projectid":project_id0}, headers = helper.token2headers(token0))
     assert response.status_code == 200
-    assert client.get('/project/details', data = {"userid":user_id0, "projectid":project_id0}, headers = helper.token2headers(token0)).status_code == 400
-    assert client.get('/project/details', data = {"userid":user_id0, "projectid":project_id1}, headers = helper.token2headers(token0)).status_code == 200
+    assert client.get('/project/details', query_string = {"userid":user_id0, "projectid":project_id0}, headers = helper.token2headers(token0)).status_code == 400
+    assert client.get('/project/details', query_string = {"userid":user_id0, "projectid":project_id1}, headers = helper.token2headers(token0)).status_code == 200
 
     # deleted project can not be updated
     response = client.put('/project/update', data = {"userid":user_id0, "projectid":project_id0, "title":"new title"}, headers = helper.token2headers(token0))
@@ -157,10 +157,10 @@ def test_permission_2():
 
     # About view
     for user_id in [client_id1]:
-        response = client.get('/project/details', data = {"userid":user_id, "projectid":project_id}, headers = helper.token2headers(id2token[user_id]))
+        response = client.get('/project/details', query_string = {"userid":user_id, "projectid":project_id}, headers = helper.token2headers(id2token[user_id]))
         assert response.status_code == 403
     for user_id in [client_id0, student_id, tutor_id, coordinator_id, admin_id]:
-        response = client.get('/project/details', data = {"userid":user_id, "projectid":project_id}, headers = helper.token2headers(id2token[user_id]))
+        response = client.get('/project/details', query_string = {"userid":user_id, "projectid":project_id}, headers = helper.token2headers(id2token[user_id]))
         assert response.status_code == 200
 
     # About update
