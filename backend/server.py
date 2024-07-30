@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_mail import Mail, Message
 # from flask_mysqldb import MySQL
 import groups
 import notifications
@@ -13,6 +14,7 @@ import preference
 from algorithms import allocate
 import permission
 import message, channel
+import sys
 
 app = Flask(__name__)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -60,7 +62,10 @@ def auth_register():
     password = request.form['password']
     firstName = request.form['firstName']
     lastName = request.form['lastName']
-    role = int(request.form.get('role', default=0))
+    try:
+        role = int(request.form.get('role', default=0))
+    except:
+        role = 0
     return jsonify(register(email, password, firstName, lastName, role))
 
 @app.post('/updateUserRole')
@@ -73,11 +78,13 @@ def update_user_role():
 
 @app.post('/updateUserName')
 def update_user_name():
-    email = request.form['email']
-    password = request.form['password']
     firstName = request.form['firstName']
     lastName = request.form['lastName']
-    return jsonify(updateUserName(email, password, firstName,lastName))
+    user_id = int(request.form['user_id'])
+    token = request.authorization
+    if auth_id(token, user_id):
+        response, status_code = updateUserName(user_id,firstName,lastName)
+        return jsonify(response), status_code
 
 
 @app.post('/auth_reset_request')
@@ -242,9 +249,8 @@ def create_project_route():
 @app.route('/project/details', methods=['GET'])
 def get_project_details_route():
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
-    projectid = data.get('projectid', default=None, type=int)
+    userid = request.args.get('userid', type=int)
+    projectid  = request.args.get('projectid', default=None, type=int)
     if auth_id(token, userid): 
         response, status_code = Project.get_details(userid, projectid)
         return jsonify(response), status_code
@@ -252,8 +258,7 @@ def get_project_details_route():
 @app.route('/projects/view', methods=['GET'])
 def view_projects_route():
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
+    userid = request.args.get('userid', type=int)
     if auth_id(token, userid): 
         response, status_code = Project.view_all(userid)
         return jsonify(response), status_code
@@ -290,8 +295,7 @@ def create_skill_route():
 @app.route('/skills/view', methods=['GET'])
 def get_skill_details_route():
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
+    userid = request.args.get('userid', type=int)
     if auth_id(token, userid): 
         response, status_code = Skill.view(userid)
         return jsonify(response), status_code
@@ -310,9 +314,8 @@ def skill_add_student_route():
 @app.route('/skills/view/student', methods=['GET'])
 def skills_view_student_route():
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
-    studentid = data.get('studentid', default=None, type=int)
+    userid = request.args.get('userid', type=int)
+    studentid = request.args.get('studentid', default=None, type=int)
     if auth_id(token, userid): 
         response, status_code = Skill.view_skills_student(userid, studentid)
         return jsonify(response), status_code
@@ -342,9 +345,8 @@ def skill_add_project_route():
 @app.route('/skills/view/project', methods=['GET'])
 def skills_view_project_route():
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
-    projectid = data.get('projectid', default=None, type=int)
+    userid = request.args.get('userid', type=int)
+    projectid  = request.args.get('projectid', default=None, type=int)
     if auth_id(token, userid): 
         response, status_code = Skill.view_skills_project(userid, projectid)
         return jsonify(response), status_code
@@ -396,6 +398,13 @@ def view_preference_route():
 @app.route('/allocate/auto', methods=['GET', 'POST'])
 def allocate_auto():
     return jsonify(allocate())
+# def send_email():
+#   msg = Message(
+#     'Hello',
+#     recipients=['chichun2002@gmail.com'],
+#     body='This is a test email sent from Flask-Mail!'
+#   )
+#   mail.send(msg)
 
 @app.route('/channel/io', methods=['PUT'])
 def channel_manual_io():
@@ -413,9 +422,8 @@ def channel_manual_io():
 @app.route('/group/channel', methods=['GET'])
 def get_group_channel():
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
-    groupid = data.get('groupid', default=None, type=int)
+    userid = request.args.get('userid', type=int)
+    groupid  = request.args.get('groupid', default=None, type=int)
     
     if auth_id(token, userid): 
         response, status_code = channel.get_group_channelid(userid, groupid)
@@ -424,9 +432,8 @@ def get_group_channel():
 @app.route('/project/channel', methods=['GET'])
 def get_project_channel():
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
-    projectid = data.get('projectid', default=None, type=int)
+    userid = request.args.get('userid', type=int)
+    projectid  = request.args.get('projectid', default=None, type=int)
     
     if auth_id(token, userid): 
         response, status_code = channel.get_project_channelid(userid, projectid)
@@ -440,9 +447,8 @@ def get_users_channel():
     user has access to a channel !-> get_users_channel() includes that channel (e.g. TUTOR can access all channels)
     """
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
-    target_userid = data.get('target_userid', default=None, type=int)
+    userid = request.args.get('userid', type=int)
+    target_userid = request.args.get('target_userid', default=None, type=int)
     
     if auth_id(token, userid): 
         response, status_code = channel.get_users_channels(userid, target_userid)
@@ -451,11 +457,10 @@ def get_users_channel():
 @app.route('/channel/messages', methods=['GET'])
 def get_channel_messages():
     token = request.authorization
-    data = request.form
-    userid = int(data['userid'])
-    channelid = data.get('channelid', default=None, type=int)
-    last_message = data.get('last_message', default=None, type=int)
-    latest_message = data.get('latest_message', default=False, type=bool)
+    userid = request.args.get('userid', type=int)
+    channelid = request.args.get('channelid', default=None, type=int)
+    last_message = request.args.get('last_message', default=None, type=int)
+    latest_message = request.args.get('latest_message', default=False, type=bool)
     
     if auth_id(token, userid): 
         response, status_code = channel.view_message(userid, channelid, last_message, latest_message)

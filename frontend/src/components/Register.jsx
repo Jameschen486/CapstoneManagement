@@ -9,7 +9,6 @@ const Register = () => {
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
@@ -25,7 +24,7 @@ const Register = () => {
     formData.append('firstName', firstName);
     formData.append('lastName', lastName);
     formData.append('password', password);
-    formData.append('role', role);
+    formData.append('mobile', mobile);
 
     try {
       const response = await fetch('http://localhost:5001/register', {
@@ -134,23 +133,6 @@ const Register = () => {
               required
             />
           </div>
-          {/* <div className="form-group">
-            <label>Select Role:</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-            >
-              <option value="" disabled>
-                Select Role
-              </option>
-              <option value="1">Student</option>
-              <option value="2">Client</option>
-              <option value="3">Tutor</option>
-              <option value="4">Administrator</option>
-              <option value="5">Other</option>
-            </select>
-          </div> */}
           <button type="submit" className='create-account-button'>Create New Account</button>
         </form>
       </div>

@@ -29,7 +29,7 @@ def auth_role(token, *args):
     token = str(token).split()
     token = token[1]
     payload = jwt_decode(token)
-    if payload['role'] not in args:
+    if payload['role'] not in args and int(payload['role']) < min([int(arg) for arg in args]):
         raise HTTPError("Insufficent Privelage", 400)
     return payload
 
@@ -94,16 +94,9 @@ def updateUserRole(email1, password, email2, role):
 
     return
 
-def updateUserName(email, password, firstName, lastName):
-    user = dbAcc.get_user_by_email(email)
-    if user is None:
-        raise HTTPError('Invalid email, please try again', 400)
-
-    if getHashOf(password) == user[4]:
-        dbAcc.update_user_name(user[0], firstName, lastName)
-    else:
-        raise HTTPError('Invalid email or password, please try again', 400)
-    return
+def updateUserName(user_id, firstName, lastName):
+    dbAcc.update_user_name(int(user_id), firstName, lastName)
+    return True, 200
 
 def auth_reset_request(email, mail):
     user = dbAcc.get_user_by_email(email)

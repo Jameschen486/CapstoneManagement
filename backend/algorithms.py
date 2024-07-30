@@ -51,6 +51,8 @@ def allocate():
     projects = []
     max_rank = 3
     for entry in dbAcc.get_all_preferences():
+        if entry is None:
+            return (None)
         groupid = int(entry[0])
         if groupid not in [group['id'] for group in groups]:
             groups.append({'id': groupid, 'skills': {}, 'pref': {}})
@@ -63,6 +65,8 @@ def allocate():
                     group['pref'][entry[1]] += max_rank-entry[2]
     
     for entry in dbAcc.get_all_groups_skills():
+        if entry is None:
+            return (None)
         groupid = int(entry[0])
         if groupid not in [group['id'] for group in groups]:
             groups.append({'id': groupid, 'skills': {}, 'pref': {}})
@@ -72,6 +76,8 @@ def allocate():
                 group['skills'][entry[1]] = entry[2]
     
     for entry in dbAcc.get_all_project_skills():
+        if entry is None:
+            return (None)
         projid = int(entry[0])
         if projid not in [proj['id'] for proj in projects]:
             projects.append({'id':projid,'skills':[]})

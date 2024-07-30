@@ -1,0 +1,51 @@
+.projects-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+.projects-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 20px 20px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .projects-header h1 {
+    margin: 0;
+    padding: 10px;
+  }
+  .projects-content {
+    width: 80%;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+  }
+
+  .create-project-button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    float: right;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+
+  .NumofProjects::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 1px;
+    background-color: grey; /* Change color as needed */
+    margin-top: 10px; /* Adjust as needed */
+  }
