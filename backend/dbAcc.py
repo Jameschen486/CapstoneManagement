@@ -1195,6 +1195,7 @@ def get_latest_message(channelid: int) -> Message_d_base:
     
   Returns:
     tuple (messageid, ownerid, timestamp, content)
+    None, if there are no messages in the channel
   '''
   curs = conn.cursor()
   curs.execute("""SELECT messageid, ownerid, created, content FROM messages 
@@ -1202,4 +1203,6 @@ def get_latest_message(channelid: int) -> Message_d_base:
                ORDER BY created DESC
                LIMIT 1""", (channelid,))
   rec = curs.fetchone()
+  if rec == None:
+    return None
   return Message_d_base(rec[0], rec[1], rec[2], rec[3])
