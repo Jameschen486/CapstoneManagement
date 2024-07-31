@@ -7,28 +7,30 @@ import { BackButton, LogoutButton } from './utils';
 const Profile = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('');
-  const [hasData, setHasData] = useState(false);
   const [user, setUser] = useState({});
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [isUserDetailSectionCollapsed, setIsUserDetailSectionCollapsed] = useState(true);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
   const [skills, setSkills] = useState([]);
   const [studentSkills, setStudentSkills] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [preferences, setPreferences] = useState([]);
+  const [isUserDetailSectionCollapsed, setIsUserDetailSectionCollapsed] = useState(true);
   const [isSkillsSectionCollapsed, setIsSkillsSectionCollapsed] = useState(true);
+  const [isPreferenceSectionCollapsed, setIsPreferenceSectionCollapsed] = useState(true);
 
   useEffect(() => {
-    // User role from localStorage
     const userRole = localStorage.getItem('role');
     if (userRole) {
       setRole(userRole);
     } else {
-      // If no role is found, redirect to the home page or login page
       navigate('/');
     }
     fetchUserData();
     fetchStudentSkills();
     fetchSkills();
+    fetchProjects();
+    fetchPreferences();
   }, [navigate]);
 
   const fetchUserData = async () => {
@@ -36,7 +38,6 @@ const Profile = () => {
       const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
 
-      // Fetch user data
       const response = await fetch(`http://localhost:5001/user?id=${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -53,37 +54,36 @@ const Profile = () => {
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
-    return;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
     
-    try {
-      const userId = localStorage.getItem('userId');
-      const token = localStorage.getItem('token');
+  //   try {
+  //     const userId = localStorage.getItem('userId');
+  //     const token = localStorage.getItem('token');
 
-      const formdata = new FormData();
-      formdata.append('user_id', userId);
-      formdata.append('firstName', firstName);
-      formdata.append('lastName', lastName,);
+  //     const formdata = new FormData();
+  //     formdata.append('user_id', userId);
+  //     formdata.append('firstName', firstName);
+  //     formdata.append('lastName', lastName,);
 
-      const response = await fetch(`http://localhost:5001/updateUserName`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formdata
-      });
-      const output = await response.json();
-      console.log(output)
-    }
+  //     const response = await fetch(`http://localhost:5001/updateUserName`, {
+  //       method: 'POST',
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: formdata
+  //     });
+  //     const output = await response.json();
+  //     console.log(output)
+  //   }
     
-    catch (error) {
-      console.error('Error updating user data:', error);
-    }
-    // Add your form submission logic here
-  };
+  //   catch (error) {
+  //     console.error('Error updating user data:', error);
+  //   }
+  //   // Add your form submission logic here
+  // };
   
   // const HandleLogout = () => {
   //   const navigate = useNavigate();
@@ -91,13 +91,13 @@ const Profile = () => {
   //   navigate('/');
   // };
 
-  const toggleUserDetailSection = () => {
-    setIsUserDetailSectionCollapsed(!isUserDetailSectionCollapsed);
-  };
+  // const toggleUserDetailSection = () => {
+  //   setIsUserDetailSectionCollapsed(!isUserDetailSectionCollapsed);
+  // };
 
-  const toggleSkillsSection = () => {
-    setIsSkillsSectionCollapsed(!isSkillsSectionCollapsed);
-  };
+  // const toggleSkillsSection = () => {
+  //   setIsSkillsSectionCollapsed(!isSkillsSectionCollapsed);
+  // };
   
   const fetchSkills = async () => {
     try {
@@ -111,33 +111,17 @@ const Profile = () => {
       });
 
       const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        // Convert the object of skills to an array
-        const skillsArray = Object.values(data);
-        setSkills(skillsArray);
-      } else {
-        throw new Error('Failed to load skills');
-      }
+      setSkills(Object.values(data));
     } catch (error) {
       console.error('Error fetching skills:', error);
       alert('Error fetching skills');
     }
   };
 
-  useEffect(() => {
-    fetchSkills();
-  }, []);
-
   const fetchStudentSkills = async () => {
     try {
       const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      const studentId = parseInt(localStorage.getItem('role'), 10);
-  
-      if (isNaN(studentId) || studentId > 0) {
-        throw new Error("Invalid student ID");
-      }
   
       const response = await fetch(`http://localhost:5001/skills/view/student?userid=${userId}&studentid=${userId}`, {
         headers: {
@@ -145,22 +129,59 @@ const Profile = () => {
         },
       });
   
-      if (!response.ok) {
-        const text = await response.text();
-        console.log('Server response:', text);
-        throw new Error(text);
-      }
-  
       const data = await response.json();
-      console.log(data);
-      const studentSkillsArray = Object.entries(data).map(([key, value]) => ({ skillid: parseInt(key), skillname: value }));
-      setStudentSkills(studentSkillsArray);
+      setStudentSkills(Object.entries(data).map(([key, value]) => ({ skillid: parseInt(key), skillname: value })));
     } catch (error) {
       console.error('Error fetching student skills:', error);
-      alert(`Error fetching student skills: ${error.message}`);
+      alert('Error fetching student skills');
     }
   };
-  
+
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+
+      const response = await fetch(`http://localhost:5001/projects/view?userid=${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      setProjects(Object.keys(data).map(key => ({ projectid: key, ...data[key] })));
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      alert('Error fetching projects');
+    }
+  };
+
+  const fetchPreferences = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+
+      const response = await fetch(`http://localhost:5001/preference/view?user_id=${userId}&student_id=${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      const data = await response.json();
+      console.log('Preferences data:', data);
+      const preferencesArray = data.map(({ project_id, rank }) => ({ project_id, rank }));
+      setPreferences(preferencesArray);
+    } catch (error) {
+      console.error('Error fetching preferences:', error);
+      alert(`Error fetching preferences: ${error.message}`);
+    }
+  };
+
   const handleAddSkill = async (skillId) => {
     try {
       const token = localStorage.getItem('token');
@@ -179,17 +200,16 @@ const Profile = () => {
         body: formData,
       });
 
-      const text = await response.text();
-      if (!response.ok) {
-        console.log('Server response:', text);
+      if (response.ok) {
+        alert('Skill added successfully!');
+        fetchStudentSkills();
+      } else {
+        const text = await response.text();
         throw new Error(text);
       }
-
-      alert('Skill added successfully!');
-      fetchStudentSkills(); // Refresh the list of student skills
     } catch (error) {
       console.error('Error adding skill:', error);
-      alert(`Error adding skill: ${error.message}`);
+      alert('Error adding skill');
     }
   };
 
@@ -211,16 +231,16 @@ const Profile = () => {
         body: formData,
       });
 
-      const text = await response.text();
-      if (!response.ok) {
+      if (response.ok) {
+        alert('Skill removed successfully!');
+        fetchStudentSkills();
+      } else {
+        const text = await response.text();
         throw new Error(text);
       }
-
-      alert('Skill removed successfully!');
-      fetchStudentSkills();
     } catch (error) {
       console.error('Error removing skill:', error);
-      alert(`Error removing skill: ${error.message}`);
+      alert('Error removing skill');
     }
   };
   
@@ -228,10 +248,109 @@ const Profile = () => {
   //   navigate('/dashboard');
   // };
 
-  const handleReset = async (e) => {
-    navigate('/reset');
+  const handleAddPreference = async (projectId, rank) => {
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+
+      const formData = new FormData();
+      formData.append('user_id', userId);
+      formData.append('project_ids', projectId);
+      formData.append('ranks', rank);
+
+      const response = await fetch('http://localhost:5001/preference/add', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert('Preference added successfully!');
+        fetchPreferences();
+      } else {
+        const text = await response.text();
+        throw new Error(text);
+      }
+    } catch (error) {
+      console.error('Error adding preference:', error);
+      alert('Error adding preference');
+    }
   };
-  
+
+  const handleEditPreference = async (projectId, rank) => {
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+
+      const formData = new FormData();
+      formData.append('user_id', userId);
+      formData.append('project_ids', projectId);
+      formData.append('ranks', rank);
+
+      const response = await fetch('http://localhost:5001/preference/edit', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert('Preference updated successfully!');
+        fetchPreferences();
+      } else {
+        const text = await response.text();
+        throw new Error(text);
+      }
+    } catch (error) {
+      console.error('Error updating preference:', error);
+      alert('Error updating preference');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+
+      const formdata = new FormData();
+      formdata.append('user_id', userId);
+      formdata.append('firstName', firstName);
+      formdata.append('lastName', lastName);
+
+      const response = await fetch(`http://localhost:5001/updateUserName`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formdata
+      });
+      const output = await response.json();
+      console.log(output);
+    } catch (error) {
+      console.error('Error updating user data:', error);
+    }
+  };
+
+  const toggleUserDetailSection = () => {
+    setIsUserDetailSectionCollapsed(!isUserDetailSectionCollapsed);
+  };
+
+  const toggleSkillsSection = () => {
+    setIsSkillsSectionCollapsed(!isSkillsSectionCollapsed);
+  };
+
+  const togglePreferenceSection = () => {
+    setIsPreferenceSectionCollapsed(!isPreferenceSectionCollapsed);
+  };
+
+  const handleBack = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
@@ -246,7 +365,7 @@ const Profile = () => {
           <div className='dashboard-profile-row'>
             <p><strong>Firstname:</strong> {firstName}</p>
             <p><strong>LastName:</strong> {lastName}</p>
-            <p><strong>Email:</strong> <p>{email}</p></p>
+            <p><strong>Email:</strong> {email}</p>
           </div>
           <button onClick={toggleUserDetailSection} className="toggle-button">
             {isUserDetailSectionCollapsed ? 'Update User Detail' : 'Close'}
@@ -297,6 +416,47 @@ const Profile = () => {
                 </ul>
               </div>
             )}
+          </div>
+          <h2 className='preference-header'>User Preferences</h2>
+          <div className='user-preference-section'>
+            <h3>Current Preferences</h3>
+            <ul>
+              {preferences.length > 0 ? (
+                preferences.map((pref) => (
+                  <li key={pref.project_id}>
+                    {projects.find(project => project.projectid === pref.project_id)?.title || 'Unknown Project'} - Rank: {pref.rank}
+                  </li>
+                ))
+              ) : (
+                <li>No preferences found</li>
+              )}
+            </ul>
+            <div className='preferences-content'>
+              <button onClick={togglePreferenceSection} className="toggle-button">
+                {isPreferenceSectionCollapsed ? 'Edit Preferences' : 'Close'}
+              </button>
+              {!isPreferenceSectionCollapsed && (
+                <div>
+                  <h3>Add/Edit Preferences</h3>
+                  <ul>
+                    {projects.map((project) => (
+                      <li key={project.projectid}>
+                        <span>{project.title}</span>
+                        <select
+                          onChange={(e) => handleAddPreference(project.projectid, e.target.value)}
+                          defaultValue={preferences.find(pref => pref.project_id === project.projectid)?.rank || ''}
+                        >
+                          <option value="" disabled>Select Rank</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                        </select>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="dashboard-section">

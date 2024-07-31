@@ -17,8 +17,7 @@ const GroupRequests = ({ groupId }) => {
 
         const data = await response.json();
         if (response.ok) {
-          // Convert the list of tuples to list of objects
-          const formattedData = data.join_requests.map(request => ({
+          const formattedData = (data.join_requests || []).map(request => ({
             userid: request[0],
             first_name: request[1],
             last_name: request[2]
@@ -40,7 +39,7 @@ const GroupRequests = ({ groupId }) => {
       formData.append('userid', localStorage.getItem('userId'));
       formData.append('applicantid', applicantId);
       formData.append('groupid', groupId);
-      formData.append('accept', accept ? 'true' : 'false'); // Send '1' for true and '' for false
+      formData.append('accept', accept ? 'true' : 'false');
 
       // Log form data entries
       for (let [key, value] of formData.entries()) {
@@ -62,6 +61,7 @@ const GroupRequests = ({ groupId }) => {
         alert(data.message);
         // Refresh the join requests
         setRequests(requests.filter(req => req.userid !== applicantId));
+        window.location.reload();
       } else {
         alert(data.description || 'Failed to handle join request');
       }

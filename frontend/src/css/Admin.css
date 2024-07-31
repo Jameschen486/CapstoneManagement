@@ -1,11 +1,11 @@
-.manage-skills-container {
+.admin-page {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
 }
 
-.manage-skills-header {
+.admin-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -13,17 +13,15 @@
     padding: 10px;
     background-color: #f8f9fa;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: visible;
 }
 
-.manage-skills-header h1 {
+.admin-header h1 {
     margin: 0;
     padding: 10px;
 }
 
-.manage-skills-header button {
+.admin-header button {
     padding: 8px 16px;
-    margin-right: 0;
     background-color: #007bff;
     color: white;
     border-radius: 5px;
@@ -31,30 +29,100 @@
     cursor: pointer;
 }
 
-.manage-skills-header button:hover {
+.admin-header button:hover {
     background-color: #0056b3;
 }
 
-.skills-content {
+.create-skill-button {
+    margin-top: 10px;
+}
+
+.admin-content {
+    width: 80%;
+    margin-top: 20px;
+}
+
+.navigation-arrows {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.arrow-button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.arrow-button:hover {
+    background-color: #0056b3;
+}
+
+.admin-skills-container, .admin-projects-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-skills-list, .admin-projects-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px 0;
+    
+}
+
+.skill-name-input {
+    padding: 6px;
+    width: 50%;
+
+}
+
+
+.groups-content {
     width: 50%;
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
+    text-align: left;
 }
 
-.create-skill-button {
-    padding: 10px 20px;
-    border: none;
-    background-color: #007bff;
+.groups-content select {
+    padding: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.select-project-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #28a745;
     color: white;
+    border: none;
     border-radius: 5px;
     cursor: pointer;
-    float: right;
 }
 
-.skill-name-input {
-    padding: 6px;
-    width: 50%;
+.select-project-button:hover {
+    background-color: #218838;
+}
+
+.project-item {
+    display: flex;
+    align-items: center;
+}
+
+.project-title {
+    cursor: pointer;
+    padding: 5px;
 }
