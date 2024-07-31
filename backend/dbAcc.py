@@ -89,6 +89,17 @@ def update_user_name(userid: int, firstName: str, lastName: str):
   curs.execute("UPDATE users SET firstName = %s, lastName = %s WHERE userid = %s", (firstName, lastName, userid))
   conn.commit()
 
+def update_email(userid: int, email: str):
+  ''' Modifies the email of a user
+
+  Parameters:
+    - userid, id of user to issue change
+    - email (string), new email
+  '''
+  curs = conn.cursor()
+  curs.execute("UPDATE users SET email = %s WHERE userid = %s", (email, userid))
+  conn.commit()
+
 # Retrieval
 def get_user_by_id(userid: int) -> User_d_full:
   ''' Queries the database for user information
