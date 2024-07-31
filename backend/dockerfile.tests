@@ -6,5 +6,5 @@ COPY . /app/backend
 
 
 # Run the application
-CMD ["pytest", "-r", "/tests"]
+# CMD ["pytest", "-r", "/tests"]
 

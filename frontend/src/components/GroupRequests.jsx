@@ -40,7 +40,7 @@ const GroupRequests = ({ groupId }) => {
       formData.append('userid', localStorage.getItem('userId'));
       formData.append('applicantid', applicantId);
       formData.append('groupid', groupId);
-      formData.append('accept', accept ? '1' : ''); // Send '1' for true and '' for false
+      formData.append('accept', accept ? 'true' : 'false'); // Send '1' for true and '' for false
 
       // Log form data entries
       for (let [key, value] of formData.entries()) {

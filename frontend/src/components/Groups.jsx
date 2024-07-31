@@ -40,6 +40,7 @@ const Groups = () => {
             groupid: groupData.groupid,
             groupname: groupData.groupname,
             ownerid: groupData.ownerid,
+            project: groupData.project,
             group_members: groupData.group_members.map(member => ({
               userid: member[0],
               firstname: member[1],

@@ -5,6 +5,7 @@ from datetime import datetime
 
 import psycopg2.extras
 import dbChannel
+import sys
 
 # TODO: swap to using connection pool
 try:

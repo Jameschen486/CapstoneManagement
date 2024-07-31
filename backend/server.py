@@ -476,7 +476,7 @@ def get_channel_messages():
     userid = request.args.get('userid', type=int)
     channelid = request.args.get('channelid', default=None, type=int)
     last_message = request.args.get('last_message', default=None, type=int)
-    latest_message = request.args.get('latest_message', default=False, type=bool)
+    latest_message = request.args.get('latest_message', default='false', type=str)
     
     if auth_id(token, userid): 
         response, status_code = channel.view_message(userid, channelid, last_message, latest_message)
