@@ -131,8 +131,9 @@ def test_email_reset_req0():
     response = client.post('/updateUserEmailRequest', data = {"email": "Email@provider.com", "newEmail": "newMail@gmail.com"}, headers = helper.token2headers(token))
     reset_code = dbAcc.get_reset_code(user[0])
     assert reset_code is not None
+    clear_users()
 
-def test_reset0():
+def test_reset_email0():
 
     user_info = USERS[0]
     client.post('/register', data = user_info)
