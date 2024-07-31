@@ -37,7 +37,7 @@ MAX_STUDENT_PER_GROUP = 6
 
 def make_res_code(res, code):
   ret_res = {"message": res}
-  return jsonify(res), code
+  return jsonify(ret_res), code
 
 # ERROR HANDLER
 @app.errorhandler(HTTPError)
@@ -181,6 +181,7 @@ def leave_group_route():
 @app.route('/group/assign_project', methods=['PUT'])
 def group_assign_project_route():
   """ Assigns project to group
+      Does nothing if group is already assigned
   
   Form data:
     groupid (int)
@@ -196,7 +197,9 @@ def group_assign_project_route():
   tok = request.authorization
   if tok == None:
     return make_res_code("No token given", 401)
+  
   data = request.form
+  
   try:
     gid = int(data.get('groupid'))
   except ValueError:
@@ -211,12 +214,14 @@ def group_assign_project_route():
     auth_role(tok, permission.Role.ADMIN, permission.Role.COORDINATOR)
   except:
     return make_res_code("Insufficient permissions", 403)
+  
   res, status_code = groups.assign_project(gid, pid)
   return jsonify(res), status_code
     
 @app.route('/group/unassign_project', methods=['PUT'])
 def group_unassign_project_route():
   """ Unassigns project from group
+      Does nothing if group has no assigned project
   
   Form data:
     groupid (int)
@@ -241,6 +246,7 @@ def group_unassign_project_route():
     auth_role(tok, permission.Role.ADMIN, permission.Role.COORDINATOR)
   except:
     return make_res_code("Insufficient permissions", 403)
+  
   res, status_code = groups.unassign_project(gid)
   return jsonify(res), status_code
     
