@@ -5,7 +5,7 @@ from flask_mail import Mail, Message
 import groups
 import notifications
 
-from authentication import login, register, jwt_decode, return_user, auth_id, auth_role, updateUserRole, updateUserName, auth_password_reset, auth_reset_request
+from authentication import login, register, jwt_decode, return_user, auth_id, auth_role, updateUserRole, updateUserName, auth_password_reset, auth_reset_request, updateUserEmailRequest, updateUserEmail
 from error import HTTPError
 from projects import Project
 from skills import Skill
@@ -99,6 +99,22 @@ def reset_password():
     reset_code = request.form['reset_code']
     new_password = request.form['new_password']
     return jsonify(auth_password_reset(email, reset_code, new_password))
+
+
+@app.post('/updateUserEmailRequest')
+def request_email_reset_req():
+    email = request.form['email']
+    newEmail = request.form['newEmail']
+    return jsonify(updateUserEmailRequest(email, newEmail, mail))
+
+
+@app.post('/updateUserEmail')
+def request_email_reset():
+    email = request.form['email']
+    newEmail = request.form['newEmail']
+    reset_code = request.form['reset_code']
+    return jsonify(updateUserEmail(email, newEmail, reset_code))
+
 
 @app.route('/group/create', methods=['POST'])
 def create_group_endpoint():

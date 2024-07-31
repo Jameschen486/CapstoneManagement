@@ -105,7 +105,7 @@ def test_reset0():
     assert dbAcc.get_reset_code(user[0]) is None
 
     response = client.post('/auth_reset_request', data = {"email": "Email@provider.com"}, headers = helper.token2headers(token))
-    reset_code = dbAcc.get_reset_code(user[0])
+    reset_code = dbAcc.get_reset_code(user[0]).code
     assert reset_code is not None
 
     authentication.auth_password_reset("Email@provider.com", reset_code, "newPassword")
@@ -115,5 +115,45 @@ def test_reset0():
     user1 = dbAcc.get_user_by_email("Email@provider.com")
     hashedPassword = authentication.getHashOf("newPassword")
     assert user1[4] == hashedPassword
+
+    clear_users()
+
+def test_email_reset_req0():
+
+    user_info = USERS[0]
+    client.post('/register', data = user_info)
+    response = client.post('/login', data = user_info)
+    token = response.json["token"]
+
+    user = dbAcc.get_user_by_email("Email@provider.com")
+    assert dbAcc.get_reset_code(user[0]) is None
+
+    response = client.post('/updateUserEmailRequest', data = {"email": "Email@provider.com", "newEmail": "newMail@gmail.com"}, headers = helper.token2headers(token))
+    reset_code = dbAcc.get_reset_code(user[0])
+    assert reset_code is not None
+
+def test_reset0():
+
+    user_info = USERS[0]
+    client.post('/register', data = user_info)
+    response = client.post('/login', data = user_info)
+    token = response.json["token"]
+
+    user = dbAcc.get_user_by_email("Email@provider.com")
+    assert dbAcc.get_reset_code(user[0]) is None
+
+    user3 = dbAcc.get_user_by_email("newMail@gmail.com")
+    assert user3 is None
+
+    response = client.post('/updateUserEmailRequest', data = {"email": "Email@provider.com", "newEmail": "newMail@gmail.com"}, headers = helper.token2headers(token))
+    reset_code = dbAcc.get_reset_code(user[0]).code
+    assert reset_code is not None
+
+    authentication.updateUserEmail("Email@provider.com", "newMail@gmail.com", reset_code)
+    reset_code = dbAcc.get_reset_code(user[0])
+    assert reset_code is None
+
+    user1 = dbAcc.get_user_by_email("newMail@gmail.com")
+    assert user1 is not None
 
     clear_users()

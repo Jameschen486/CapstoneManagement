@@ -133,3 +133,40 @@ def auth_password_reset(email, reset_code, new_password):
     dbAcc.update_password(user[0], hashedPassword)
     dbAcc.remove_reset_code(user[0])
     return
+
+def updateUserEmailRequest(email, newEmail, mail):
+    user = dbAcc.get_user_by_email(email)
+    if user is None:
+        raise HTTPError('Invalid email, please try again', 400)
+
+    code = random.randint(100000, 999999)
+    timestamp = datetime.datetime.now()
+
+    dbAcc.create_reset_code(user[0], code, timestamp)
+
+    msg = Message(
+        'Update email for Capstone Management',
+        recipients=[newEmail],
+        body=f"""
+        Hello {user[2]},
+
+        Your email reset code for streams is {code}.
+
+        If you did not make this request, you can ignore this email.
+        """
+    )
+    mail.send(msg)
+    return
+
+def updateUserEmail(email, newEmail, reset_code):
+    user = dbAcc.get_user_by_email(email)
+    if user is None:
+        raise HTTPError('Invalid email, please try again', 400)
+
+    if (reset_code != dbAcc.get_reset_code(user[0]).code):
+        raise HTTPError('Incorrect reset code, try again.', 400)
+
+    dbAcc.update_email(user[0], newEmail)
+    dbAcc.remove_reset_code(user[0])
+
+    return
