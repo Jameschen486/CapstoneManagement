@@ -3,8 +3,9 @@ from flask_cors import CORS
 from flask_mail import Mail, Message
 # from flask_mysqldb import MySQL
 import groups
+import notifications
 
-from authentication import login, register, jwt_decode, return_user, auth_id, auth_role, updateUserRole, updateUserName, auth_password_reset, auth_reset_request
+from authentication import login, register, jwt_decode, return_user, auth_id, auth_role, updateUserRole, updateUserName, auth_password_reset, auth_reset_request, updateUserEmailRequest, updateUserEmail
 from error import HTTPError
 from projects import Project
 from skills import Skill
@@ -36,7 +37,7 @@ MAX_STUDENT_PER_GROUP = 6
 
 def make_res_code(res, code):
   ret_res = {"message": res}
-  return jsonify(res), code
+  return jsonify(ret_res), code
 
 # ERROR HANDLER
 @app.errorhandler(HTTPError)
@@ -98,6 +99,22 @@ def reset_password():
     reset_code = request.form['reset_code']
     new_password = request.form['new_password']
     return jsonify(auth_password_reset(email, reset_code, new_password))
+
+
+@app.post('/updateUserEmailRequest')
+def request_email_reset_req():
+    email = request.form['email']
+    newEmail = request.form['newEmail']
+    return jsonify(updateUserEmailRequest(email, newEmail, mail))
+
+
+@app.post('/updateUserEmail')
+def request_email_reset():
+    email = request.form['email']
+    newEmail = request.form['newEmail']
+    reset_code = request.form['reset_code']
+    return jsonify(updateUserEmail(email, newEmail, reset_code))
+
 
 @app.route('/group/create', methods=['POST'])
 def create_group_endpoint():
@@ -164,6 +181,7 @@ def leave_group_route():
 @app.route('/group/assign_project', methods=['PUT'])
 def group_assign_project_route():
   """ Assigns project to group
+      Does nothing if group is already assigned
   
   Form data:
     groupid (int)
@@ -179,7 +197,9 @@ def group_assign_project_route():
   tok = request.authorization
   if tok == None:
     return make_res_code("No token given", 401)
+  
   data = request.form
+  
   try:
     gid = int(data.get('groupid'))
   except ValueError:
@@ -194,12 +214,14 @@ def group_assign_project_route():
     auth_role(tok, permission.Role.ADMIN, permission.Role.COORDINATOR)
   except:
     return make_res_code("Insufficient permissions", 403)
+  
   res, status_code = groups.assign_project(gid, pid)
   return jsonify(res), status_code
     
 @app.route('/group/unassign_project', methods=['PUT'])
 def group_unassign_project_route():
   """ Unassigns project from group
+      Does nothing if group has no assigned project
   
   Form data:
     groupid (int)
@@ -224,6 +246,7 @@ def group_unassign_project_route():
     auth_role(tok, permission.Role.ADMIN, permission.Role.COORDINATOR)
   except:
     return make_res_code("Insufficient permissions", 403)
+  
   res, status_code = groups.unassign_project(gid)
   return jsonify(res), status_code
     
@@ -459,7 +482,7 @@ def get_channel_messages():
     userid = request.args.get('userid', type=int)
     channelid = request.args.get('channelid', default=None, type=int)
     last_message = request.args.get('last_message', default=None, type=int)
-    latest_message = request.args.get('latest_message', default=False, type=bool)
+    latest_message = request.args.get('latest_message', default='false', type=str)
     
     if auth_id(token, userid): 
         response, status_code = channel.view_message(userid, channelid, last_message, latest_message)
@@ -501,6 +524,45 @@ def delete_message_route():
         response, status_code = message.delete(userid, msgid)
         return jsonify(response), status_code
 
+@app.route('/notifications/view', methods=['GET'])
+def view_notifications_route():
+    token = request.authorization
+    user_id = int(request.args.get('userid'))
+
+    if auth_id(token, user_id):
+        response, status_code = notifications.view_notifications(user_id)
+        return jsonify(response), status_code
+    
+@app.route('/notification/view', methods=['GET'])
+def view_individual_notification_route():
+    token = request.authorization
+    user_id = int(request.args.get('userid'))
+    notif_id= int(request.args.get('notifid'))
+    
+    if auth_id(token, user_id):
+        response, status_code = notifications.view_notification(user_id, notif_id)
+        return jsonify(response), status_code
+    
+@app.route('/notification/delete', methods=['DELETE'])
+def delete_notification_route():
+    token = request.authorization
+    data = request.args
+    user_id = int(data.get('userid'))
+    notif_id = int(data.get('notifid'))
+    
+    if auth_id(token, user_id):
+        response, status_code = notifications.delete_notification(user_id, notif_id)
+        return jsonify(response), status_code
+    
+@app.route('/notifications/delete', methods=['DELETE'])
+def delete_notifications_route():
+    token = request.authorization
+    data = request.args
+    user_id = int(data.get('userid'))
+
+    if auth_id(token, user_id):
+        response, status_code = notifications.delete_all_notifications(user_id)
+        return jsonify(response), status_code
 
 
 if __name__ == "__main__":

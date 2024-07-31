@@ -86,7 +86,7 @@ const Home = () => {
               required
             />
             <button type="submit">Log In</button>
-            <Link to="/forgot-password">Forgotten password?</Link>
+            <Link to="/reset">Forgotten password?</Link>
           </form>
           <button className="register-button">
             <Link to="/register">Create New Account</Link>

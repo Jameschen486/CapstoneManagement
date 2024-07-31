@@ -5,6 +5,7 @@ from datetime import datetime
 
 import psycopg2.extras
 import dbChannel
+import sys
 
 # TODO: swap to using connection pool
 try:
@@ -87,6 +88,17 @@ def update_user_name(userid: int, firstName: str, lastName: str):
   '''
   curs = conn.cursor()
   curs.execute("UPDATE users SET firstName = %s, lastName = %s WHERE userid = %s", (firstName, lastName, userid))
+  conn.commit()
+
+def update_email(userid: int, email: str):
+  ''' Modifies the email of a user
+
+  Parameters:
+    - userid, id of user to issue change
+    - email (string), new email
+  '''
+  curs = conn.cursor()
+  curs.execute("UPDATE users SET email = %s WHERE userid = %s", (email, userid))
   conn.commit()
 
 # Retrieval
@@ -523,10 +535,10 @@ def get_assigned_users(projectid: int):
   '''
   curs = conn.cursor()
   curs.execute("""SELECT users.userid FROM groups 
-               JOIN users ON users.groupif = groups.groupid 
+               JOIN users ON users.groupid = groups.groupid 
                WHERE assign = %s""", (projectid,))
   ret = []
-  for rec in ret:
+  for rec in curs:
     ret.append(rec[0])
   return ret
 
@@ -1184,6 +1196,7 @@ def get_latest_message(channelid: int) -> Message_d_base:
     
   Returns:
     tuple (messageid, ownerid, timestamp, content)
+    None, if there are no messages in the channel
   '''
   curs = conn.cursor()
   curs.execute("""SELECT messageid, ownerid, created, content FROM messages 
@@ -1191,4 +1204,6 @@ def get_latest_message(channelid: int) -> Message_d_base:
                ORDER BY created DESC
                LIMIT 1""", (channelid,))
   rec = curs.fetchone()
+  if rec == None:
+    return None
   return Message_d_base(rec[0], rec[1], rec[2], rec[3])

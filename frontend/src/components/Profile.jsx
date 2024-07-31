@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Profile.css';
+import Modal from './Modal';
+import { BackButton, LogoutButton } from './utils';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -41,16 +43,62 @@ const Profile = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await response.json();
-      setUser(data);
-      setFirstName(data.first_name);
-      setLastName(data.last_name);
-      setEmail(data.email);
+      const Userdata = await response.json();
+      setHasData(true)
+      console.log('User data:', Userdata);
+      setUser(Userdata);
+      setFirstName(Userdata.first_name);
+      setLastName(Userdata.last_name);
+      setEmail(Userdata.email);
+    //   {"userid" : user.userid, "email" : user.email, "first_name" : user.first_name, "last_name" : user.last_name, "role" : user.role, "groupid" : user.groupid}
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+    
+  //   try {
+  //     const userId = localStorage.getItem('userId');
+  //     const token = localStorage.getItem('token');
+
+  //     const formdata = new FormData();
+  //     formdata.append('user_id', userId);
+  //     formdata.append('firstName', firstName);
+  //     formdata.append('lastName', lastName,);
+
+  //     const response = await fetch(`http://localhost:5001/updateUserName`, {
+  //       method: 'POST',
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: formdata
+  //     });
+  //     const output = await response.json();
+  //     console.log(output)
+  //   }
+    
+  //   catch (error) {
+  //     console.error('Error updating user data:', error);
+  //   }
+  //   // Add your form submission logic here
+  // };
+  
+  // const HandleLogout = () => {
+  //   const navigate = useNavigate();
+  //   localStorage.clear();
+  //   navigate('/');
+  // };
+
+  // const toggleUserDetailSection = () => {
+  //   setIsUserDetailSectionCollapsed(!isUserDetailSectionCollapsed);
+  // };
+
+  // const toggleSkillsSection = () => {
+  //   setIsSkillsSectionCollapsed(!isSkillsSectionCollapsed);
+  // };
+  
   const fetchSkills = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -195,6 +243,10 @@ const Profile = () => {
       alert('Error removing skill');
     }
   };
+  
+  // const handleBack = () => {
+  //   navigate('/dashboard');
+  // };
 
   const handleAddPreference = async (projectId, rank) => {
     try {
@@ -302,8 +354,10 @@ const Profile = () => {
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
+        {/* <h1>Profile <button onClick={handleBack} className="back-button">Back to Dashboard</button></h1> */}
+        <BackButton />
         <h1>Profile</h1>
-        <button onClick={handleBack} className="back-button">Back</button>
+        <LogoutButton />
       </header>
       <div className="dashboard-profile-content">
         <div className="dashboard-profile-section">
@@ -325,7 +379,7 @@ const Profile = () => {
                 <input type="text" name="Last" value={lastName} onChange={(e) => setLastName(e.target.value)} />
               </p>
               <p>Email: {email}</p>
-              <button type="submit">Save Changes</button>
+              <button onClick={(e) => handleSubmit(e)}> update </button>
             </form>
           )}
           <h2 className='skills-header'>User Skills</h2>
@@ -404,6 +458,9 @@ const Profile = () => {
               )}
             </div>
           </div>
+        </div>
+        <div className="dashboard-section">
+          <button onClick={(e) => handleReset(e)}> Reset Password </button>
         </div>
       </div>
     </div>

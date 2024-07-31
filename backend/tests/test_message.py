@@ -18,7 +18,7 @@ def test_send_1():
     response = client.post('/message/send', data = {"userid":user_id, "content":"content_str", "senderid":user_id, "channelid": channel_id}, headers = helper.token2headers(token))
     assert response.status_code == 201
 
-    response = client.get('/channel/messages', data = {"userid":user_id, "channelid": channel_id}, headers = helper.token2headers(token))
+    response = client.get('/channel/messages', query_string = {"userid":user_id, "channelid": channel_id}, headers = helper.token2headers(token))
     assert response.status_code == 200
     msgs = response.json["messages"]
     assert len(msgs) == 1
@@ -39,23 +39,23 @@ def test_send_2():
     response = client.post('/message/send', data = {"userid":user_id2, "content":"content_str2", "senderid":user_id2, "channelid": channel_id}, headers = helper.token2headers(token2))
     assert response.status_code == 403
 
-    response = client.get('/channel/messages', data = {"userid":user_id0, "channelid": channel_id}, headers = helper.token2headers(token0))
+    response = client.get('/channel/messages', query_string = {"userid":user_id0, "channelid": channel_id}, headers = helper.token2headers(token0))
     assert response.status_code == 200
     msgs = response.json["messages"]
     assert len(msgs) == 2
     assert msgs[0]["content"] == "content_str1"
     assert msgs[1]["content"] == "content_str0"
 
-    response = client.get('/channel/messages', data = {"userid":user_id1, "channelid": channel_id, "last_message": last_msg_id}, headers = helper.token2headers(token1))
+    response = client.get('/channel/messages', query_string = {"userid":user_id1, "channelid": channel_id, "last_message": last_msg_id}, headers = helper.token2headers(token1))
     assert response.status_code == 200
     msgs = response.json["messages"]
     assert len(msgs) == 1
     assert msgs[0]["content"] == "content_str0"
 
-    response = client.get('/channel/messages', data = {"userid":user_id2, "channelid": channel_id}, headers = helper.token2headers(token2))
+    response = client.get('/channel/messages', query_string = {"userid":user_id2, "channelid": channel_id}, headers = helper.token2headers(token2))
     assert response.status_code == 403
     helper.join_group(user_id0, token0, user_id2, token2, group_id)
-    response = client.get('/channel/messages', data = {"userid":user_id2, "channelid": channel_id, "latest_message":True}, headers = helper.token2headers(token2))
+    response = client.get('/channel/messages', query_string = {"userid":user_id2, "channelid": channel_id, "latest_message":True}, headers = helper.token2headers(token2))
     assert response.status_code == 200
     msgs = response.json["messages"]
     assert len(msgs) == 1
@@ -106,9 +106,9 @@ def test_delete():
     helper.join_group(user_id0, token0, user_id2, token2, group_id)
     client.post('/group/leave', data={"userid": user_id1}, headers = helper.token2headers(token1))
 
-    response = client.get('/channel/messages', data = {"userid":user_id1, "channelid": channel_id}, headers = helper.token2headers(token1))
+    response = client.get('/channel/messages', query_string = {"userid":user_id1, "channelid": channel_id}, headers = helper.token2headers(token1))
     assert response.status_code == 403
-    response = client.get('/channel/messages', data = {"userid":user_id2, "channelid": channel_id}, headers = helper.token2headers(token2))
+    response = client.get('/channel/messages', query_string = {"userid":user_id2, "channelid": channel_id}, headers = helper.token2headers(token2))
     assert response.json["messages"][0]["content"] == "content_str1"
 
     response = client.delete('/message/delete', data = {"userid": user_id2, "messageid": msg_id1}, headers = helper.token2headers(token2))
@@ -145,9 +145,9 @@ def test_project():
 
     assert helper.view_message(channel_id0)[0]["content"] == "group_content_str"
     assert helper.view_message(project_channel_id)[0]["content"] == "project_content_str"
-    response = client.get('/channel/messages', data = {"userid":student_id1, "channelid": channel_id0}, headers = helper.token2headers(student_token1))
+    response = client.get('/channel/messages', query_string = {"userid":student_id1, "channelid": channel_id0}, headers = helper.token2headers(student_token1))
     assert response.status_code == 403
-    response = client.get('/channel/messages', data = {"userid":student_id2, "channelid": project_channel_id}, headers = helper.token2headers(student_token2))
+    response = client.get('/channel/messages', query_string = {"userid":student_id2, "channelid": project_channel_id}, headers = helper.token2headers(student_token2))
     assert response.json["messages"][0]["content"] == "project_content_str"
 
     response = client.post('/message/send', data = {"userid":client_id, "content":"group_content_str", "senderid":client_id, "channelid": project_channel_id}, headers = helper.token2headers(client_token))
@@ -156,7 +156,7 @@ def test_project():
     #response = client.delete('/message/delete', data = {"userid": client_id, "messageid": project_msg_id}, headers = helper.token2headers(client_token))
     #assert response.status_code == 200
 
-    response = client.get('/users/channels', data = {"userid":student_id0, "target_userid":student_id0}, headers = helper.token2headers(student_token0))
+    response = client.get('/users/channels', query_string = {"userid":student_id0, "target_userid":student_id0}, headers = helper.token2headers(student_token0))
     assert response.status_code == 200
     assert set(helper.users_channel_ids(student_id0, student_token0)) == set([channel_id0, project_channel_id])
     assert set(helper.users_channel_ids(student_id2, student_token2)) == set([channel_id1, project_channel_id])
@@ -183,6 +183,19 @@ def test_manual_io_channel():
     client.put('/channel/io', data={"userid": admin_id, "target_userid": student_id1, "channelid": project_channel_id, "io": "join"}, headers=helper.token2headers(admin_token))
     assert set(helper.users_channel_ids(student_id2, student_token2)) == set([channel_id, project_channel_id])
     assert set(helper.users_channel_ids(student_id1, student_token1)) == set([project_channel_id])
+
+
+def test_empty_channel():
+    admin_id, admin_token = helper.get_admin()
+    student_id, student_token = helper.create_user()
+
+    group_id, channel_id = helper.create_group(student_id, student_token)
+
+    assert len(helper.view_message(channel_id)) == 0
+    assert len(helper.view_message(channel_id, last_msg_id=-1)) == 0
+    assert len(helper.view_message(channel_id, last_msg_id=100)) == 0
+    assert len(helper.view_message(channel_id, latest_message=True)) == 0
+
 
 
 

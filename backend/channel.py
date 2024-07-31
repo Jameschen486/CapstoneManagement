@@ -1,5 +1,6 @@
 import dbAcc, load, permission, message
 from error import InputError
+import sys
 
 def get_group_channelid(userid:int, groupid:int):
     load.user(userid)
@@ -40,13 +41,18 @@ def manual_io(userid:int, target_userid:int, channelid:int, io:str = None):
     return {"succeed": succeed}, 200
 
 
-def view_message(userid:int, channelid:int, last_message:int = None, latest_message:bool = False):
+def view_message(userid:int, channelid:int, last_message:int = None, latest_message:str = 'false'):
     load.user(userid)
     load.channel(channelid)
     permission.view_channel_message(userid, channelid)
 
-    if latest_message:
-        msgs = [dbAcc.get_latest_message(channelid)]
+    if latest_message == 'true':
+        msg = dbAcc.get_latest_message(channelid)
+        if msg is None:
+            msgs = []
+        else:
+            msgs = [msg]
+            
     else:
         msgs = dbAcc.get_channel_messages(channelid, last_message)
     
