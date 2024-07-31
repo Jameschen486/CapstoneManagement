@@ -19,6 +19,7 @@ def create_group(group_name, creator_id):
         raise AccessError(description="User is already in a group")
     
     group_id = dbAcc.create_group(creator_id, group_name)
+    dbAcc.remove_all_join_requests(creator_id)
     return {"message": "Group created successfully!", "group_id": group_id}, 201
 
 def view_groups():
