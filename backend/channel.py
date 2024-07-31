@@ -46,7 +46,12 @@ def view_message(userid:int, channelid:int, last_message:int = None, latest_mess
     permission.view_channel_message(userid, channelid)
 
     if latest_message:
-        msgs = [dbAcc.get_latest_message(channelid)]
+        msg = dbAcc.get_latest_message(channelid)
+        if msg is None:
+            msgs = []
+        else:
+            msgs = [msg]
+            
     else:
         msgs = dbAcc.get_channel_messages(channelid, last_message)
     

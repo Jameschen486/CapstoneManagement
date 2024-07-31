@@ -185,6 +185,19 @@ def test_manual_io_channel():
     assert set(helper.users_channel_ids(student_id1, student_token1)) == set([project_channel_id])
 
 
+def test_empty_channel():
+    admin_id, admin_token = helper.get_admin()
+    student_id, student_token = helper.create_user()
+
+    group_id, channel_id = helper.create_group(student_id, student_token)
+
+    assert len(helper.view_message(channel_id)) == 0
+    assert len(helper.view_message(channel_id, last_msg_id=-1)) == 0
+    assert len(helper.view_message(channel_id, last_msg_id=100)) == 0
+    assert len(helper.view_message(channel_id, latest_message=True)) == 0
+
+
+
 
 
 
