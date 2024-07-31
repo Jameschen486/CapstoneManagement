@@ -32,7 +32,7 @@ def test_update_project_notification():
 
     # Check notifications for each student
     notifs = dbAcc.get_notifs(student_id1)
-    assert len(notifs) == 3
+    assert len(notifs) == 4
     assert notifs[0].content == f"The project Updated Project Title has been updated."
 
     notifs = dbAcc.get_notifs(student_id2)
@@ -159,3 +159,68 @@ def test_delete_all_notifications():
     assert notif_response.status_code == 200
     notifications = notif_response.get_json()
     assert len(notifications) == 0
+
+from tests import helper
+from permission import Role
+import dbAcc
+
+def test_assign_project_notification():
+
+    helper.truncate()
+    admin_id, admin_token = helper.create_user(role=Role.ADMIN)
+    project_data = {"userid": admin_id, "ownerid": admin_id, "title": "New Project"}
+    project_id = helper.CLIENT.post('/project/create', data=project_data, headers=helper.token2headers(admin_token)).json['projectid']
+
+    # Create three students and a group
+    student_id1, token1 = helper.create_user(index=1, role=Role.STUDENT)
+    student_id2, token2 = helper.create_user(index=2, role=Role.STUDENT)
+    student_id3, token3 = helper.create_user(index=3, role=Role.STUDENT)
+
+    group_id = helper.CLIENT.post('/group/create', data={"groupname": "Test Group", "ownerid": student_id1}, headers=helper.token2headers(token1)).json["group_id"]
+    helper.CLIENT.post('/group/join', data={"groupid": group_id, "userid": student_id2}, headers=helper.token2headers(token2))
+    helper.CLIENT.post('/group/request/handle', data={"userid": student_id1, "applicantid": student_id2, "groupid": group_id, "accept": True}, headers=helper.token2headers(token1))
+    helper.CLIENT.post('/group/join', data={"groupid": group_id, "userid": student_id3}, headers=helper.token2headers(token3))
+    helper.CLIENT.post('/group/request/handle', data={"userid": student_id1, "applicantid": student_id3, "groupid": group_id, "accept": True}, headers=helper.token2headers(token1))
+
+    # Assign the project to the group
+    response = helper.CLIENT.put('/group/assign_project', data={"groupid": group_id, "projectid": project_id}, headers=helper.token2headers(admin_token))
+    assert response.status_code == 200
+    assert response.get_json()["message"] == "Project successfully assigned"
+
+    # Check notifications for each student
+    for student_id, token in [(student_id1, token1), (student_id2, token2), (student_id3, token3)]:
+        response = helper.CLIENT.get('/notifications/view', query_string={"userid": student_id}, headers=helper.token2headers(token))
+        assert response.status_code == 200
+        notifications = response.get_json()
+        assert notifications[0]["content"] == f"Project 'New Project' has been assigned to your group."
+
+
+def test_unassign_project_notification():
+
+    helper.truncate()
+    admin_id, admin_token = helper.create_user(role=Role.ADMIN)
+    project_data = {"userid": admin_id, "ownerid": admin_id, "title": "New Project"}
+    project_id = helper.CLIENT.post('/project/create', data=project_data, headers=helper.token2headers(admin_token)).json['projectid']
+
+    student_id1, token1 = helper.create_user(index=1, role=Role.STUDENT)
+    student_id2, token2 = helper.create_user(index=2, role=Role.STUDENT)
+    student_id3, token3 = helper.create_user(index=3, role=Role.STUDENT)
+
+    group_id = helper.CLIENT.post('/group/create', data={"groupname": "Test Group", "ownerid": student_id1}, headers=helper.token2headers(token1)).json["group_id"]
+    helper.CLIENT.post('/group/join', data={"groupid": group_id, "userid": student_id2}, headers=helper.token2headers(token2))
+    helper.CLIENT.post('/group/request/handle', data={"userid": student_id1, "applicantid": student_id2, "groupid": group_id, "accept": True}, headers=helper.token2headers(token1))
+    helper.CLIENT.post('/group/join', data={"groupid": group_id, "userid": student_id3}, headers=helper.token2headers(token3))
+    helper.CLIENT.post('/group/request/handle', data={"userid": student_id1, "applicantid": student_id3, "groupid": group_id, "accept": True}, headers=helper.token2headers(token1))
+    helper.CLIENT.put('/group/assign_project', data={"groupid": group_id, "projectid": project_id}, headers=helper.token2headers(admin_token))
+
+    # Unassign the project from the group
+    response = helper.CLIENT.put('/group/unassign_project', data={"groupid": group_id}, headers=helper.token2headers(admin_token))
+    assert response.status_code == 200
+    assert response.get_json()["message"] == "Project successfully unassigned"
+
+    # Check notifications for each student
+    for student_id, token in [(student_id1, token1), (student_id2, token2), (student_id3, token3)]:
+        response = helper.CLIENT.get('/notifications/view', query_string={"userid": student_id}, headers=helper.token2headers(token))
+        assert response.status_code == 200
+        notifications = response.get_json()
+        assert notifications[0]["content"] == "Project has been unassigned from your group."

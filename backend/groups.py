@@ -112,6 +112,8 @@ def leave_group(user_id):
 
     dbAcc.remove_user_from_group(user_id)
     return {"message": "User has left the group"}, 200
+
+
   
 def assign_project(groupid, projectid):
   grp_d = dbAcc.get_group_by_id(groupid)
@@ -123,6 +125,13 @@ def assign_project(groupid, projectid):
     return {"message": "A project is already assigned, unassign the previous project if you wish to assign a new one"}, 200
   try:
     dbAcc.assign_project_to_group(projectid, groupid)
+    
+	# Send notification
+    group_members = dbAcc.get_group_members(groupid)
+    project_title = dbAcc.get_project_by_id(projectid)[2]
+    for member in group_members:
+      dbAcc.create_notif(member[0], f"Project '{project_title}' has been assigned to your group.")
+
   except:
     return {"message": "An error occurred, project not assigned"}, 500
   return {"message": "Project successfully assigned"}, 200
@@ -135,6 +144,12 @@ def unassign_project(groupid):
     return {"message": "Group is not assigned a project"}, 200
   try:
     dbAcc.unassign_project_from_group(groupid)
+    
+	# Send notification
+    group_members = dbAcc.get_group_members(groupid)
+    for member in group_members:
+      dbAcc.create_notif(member[0], "Project has been unassigned from your group.")
+
   except:
     return {"message": "An error occurred, project still assigned"}, 500
   return {"message": "Project successfully unassigned"}, 200
