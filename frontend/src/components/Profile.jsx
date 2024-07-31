@@ -44,7 +44,7 @@ const Profile = () => {
         },
       });
       const Userdata = await response.json();
-      setHasData(true)
+      // setHasData(true)
       console.log('User data:', Userdata);
       setUser(Userdata);
       setFirstName(Userdata.first_name);
@@ -350,6 +350,11 @@ const Profile = () => {
   const handleBack = () => {
     navigate('/dashboard');
   };
+
+  const handleReset = () => {
+    navigate('/reset');
+  };
+
 
   return (
     <div className="dashboard-container">

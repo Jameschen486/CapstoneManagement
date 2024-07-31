@@ -65,7 +65,7 @@ def project_edit(userid:int, projectid:int):
 
 def skill_create(userid:int):
     user = dbAcc.get_user_by_id(userid)
-    if user.role not in [Role.COORDINATOR, Role.ADMIN]:
+    if user.role not in [Role.COORDINATOR, Role.ADMIN, Role.CLIENT]:
         raise RoleError(description=f"Only coordinator/admin can create skills")
     
 

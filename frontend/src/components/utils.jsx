@@ -171,13 +171,33 @@ export const MessageBox = (props) => {
 };
 
 export const ProjectBox = (props) => {
-  const project = props.project
-  console.log('Project',project)
+  const projectid = props.project
+  const token = props.token
+  const userid = props.userid
+  const [project, setProject] = useState([])
+
+  useEffect(() => {
+    fetchProject()
+  }, [])
+
+  const fetchProject = async () => {
+    fetch(`http://localhost:5001/project/details?userid=${userid}&projectid=${projectid}`, {
+      method: 'GET',
+      headers: {Authorization: `Bearer ${token}`,},
+    })
+    .then(res => {
+      return res.json();
+    })
+    .then(data => {
+      console.log(data);
+      setProject(data)
+    })
+  };
+
   return (
     <div>
       <h2> Project </h2>
       {project ? (<><p>{project}</p></>):(<><p>None</p></>)}
-      
     </div>
   )
 }

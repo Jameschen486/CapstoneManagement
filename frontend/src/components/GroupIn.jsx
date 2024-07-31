@@ -71,7 +71,7 @@ const GroupIn = ({ groupData }) => {
           )}
         </div>
         <div style={{flexGrow: '1'}}>
-          <ProjectBox project={groupData.project}/>
+          <ProjectBox project={groupData.project} userid={userId} token={token}/>
         </div>
       </div>
       <h3>Chat:</h3>
