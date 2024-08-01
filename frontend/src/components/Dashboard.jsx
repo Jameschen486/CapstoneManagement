@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Dashboard.css';
 import Modal from './Modal';
+import {GroupIn} from './GroupIn';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Dashboard = () => {
   const [message, setMessage] = useState('');
   const [isRoleSectionCollapsed, setIsRoleSectionCollapsed] = useState(true);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [groupData, setGroupData] = useState(null);
 
   const roleOptions = {
     'Student': 0,
@@ -31,6 +33,48 @@ const Dashboard = () => {
     } else {
       navigate('/');
     }
+    const fetchGroupData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+
+        // Fetch user data
+        const userResponse = await fetch(`http://localhost:5001/user?id=${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const userData = await userResponse.json();
+        console.log('User data:', userData);
+
+        if (userData.groupid) {
+          // Fetch group data
+          const groupResponse = await fetch(`http://localhost:5001/group?groupid=${userData.groupid}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const groupData = await groupResponse.json();
+          console.log('Group data:', groupData);
+          // setInGroup(true);
+          setGroupData({
+            groupid: groupData.groupid,
+            groupname: groupData.groupname,
+            ownerid: groupData.ownerid,
+            project: groupData.project,
+            group_members: groupData.group_members.map(member => ({
+              userid: member[0],
+              firstname: member[1],
+              lastname: member[2],
+            })),
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching group data:', error);
+      }
+    };
+    fetchGroupData();
   }, [navigate]);
 
   const handleLogout = () => {
@@ -127,6 +171,8 @@ const Dashboard = () => {
               </div>
             </div>
             <p>Here you can manage your projects, view messages, and notifications.</p>
+            <h2>Your Group:</h2>
+            {groupData ? (<><GroupIn groupData={groupData}/></>):(<></>)}
           </div>
         );
       case '1':

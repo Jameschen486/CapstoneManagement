@@ -32,12 +32,12 @@ def main(groups, projects):
             matrix[i][j] = score
             # print(group['id'], project['id'], score)
 
-    print(matrix)
+    print(matrix, file=sys.stderr)
     row_ind, col_ind = linear_sum_assignment(matrix, maximize = True)
     # print(col_ind)
     # print(row_ind)
 
-    print(matrix[row_ind, col_ind].sum())
+    print(matrix[row_ind, col_ind].sum(), file=sys.stderr)
 
     for i, entry in enumerate(row_ind):
         output.append({'group_id':groups[entry]['id'],'project_id':projects[col_ind[i]]['id']})
@@ -85,10 +85,10 @@ def allocate():
         for project in projects:
             if project['id'] == projid:
                 project['skills'].append(entry[2])
-    print('groups')
-    print(groups)
-    print('projects')
-    print(projects)
+    print('groups', file=sys.stderr)
+    print(groups, file=sys.stderr)
+    print('projects', file=sys.stderr)
+    print(projects, file=sys.stderr)
 
     output = main(groups,projects)
     # for group in groups:

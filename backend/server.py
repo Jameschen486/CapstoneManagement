@@ -419,6 +419,9 @@ def view_preference_route():
     
 @app.route('/allocate/auto', methods=['GET', 'POST'])
 def allocate_auto():
+    for item in allocate():
+        print(item, file=sys.stderr)
+        groups.assign_project(item['group_id'], item['project_id'])
     return jsonify(allocate())
 # def send_email():
 #   msg = Message(
@@ -427,6 +430,12 @@ def allocate_auto():
 #     body='This is a test email sent from Flask-Mail!'
 #   )
 #   mail.send(msg)
+@app.route('/unallocate/auto', methods=['GET', 'POST'])
+def unallocate_all():
+    for group in groups.view_groups():
+        groups.unassign_project(group[0])
+    return 'True', 200
+
 
 @app.route('/channel/io', methods=['PUT'])
 def channel_manual_io():

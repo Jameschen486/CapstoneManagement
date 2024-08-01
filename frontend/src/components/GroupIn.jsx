@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import GroupRequests from './GroupRequests';
 import {ChatBox, ProjectBox} from './utils';
 
-const GroupIn = ({ groupData }) => {
+export const GroupIn = ({ groupData }) => {
   const [showRequests, setShowRequests] = useState(false);
   const [channelId, setChannelId] = useState('');
   const [loaded, setloaded] = useState(false);

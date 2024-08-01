@@ -102,7 +102,10 @@ export const ChatBox = (props) => {
     fetchChannel();
     var objDiv = document.getElementById("chatbox");
     objDiv.scrollTop = objDiv.scrollHeight;
-    // setText(output);
+    var objDiv = document.getElementById("box");
+    objDiv.value = '';
+    // inputRef.current.value = "";
+    
   };
 
   function onlyUnique(value, index, array) {
@@ -129,7 +132,7 @@ export const ChatBox = (props) => {
       )}
       </div>
       <div> 
-        <input type="text" name="Message" onChange={(e) => setMessage(e.target.value)}></input>
+        <input id='box' type="text" name="Message" onChange={(e) => setMessage(e.target.value)}></input>
         <button onClick={() => sendMessage()}> Send </button>
       </div>
     </div> 
@@ -155,6 +158,7 @@ export const MessageBox = (props) => {
         },
       });
       const output = await response.str();
+      // inputRef.current.value = "";
       // setText(output);
     }
     catch {
@@ -164,7 +168,7 @@ export const MessageBox = (props) => {
 
   return (
     <div> 
-      <input type="text" name="Message" onChange={(e) => setText(e.target.value)}></input>
+      <input id='text-box' type="text" name="Message" onChange={(e) => setText(e.target.value)}></input>
       <button onClick={() => sendMessage()}> Send </button>
     </div>
   )
@@ -175,29 +179,63 @@ export const ProjectBox = (props) => {
   const token = props.token
   const userid = props.userid
   const [project, setProject] = useState([])
+  const [skills, setSkills] = useState([])
 
   useEffect(() => {
     fetchProject()
+    fetchSkills()
   }, [])
 
   const fetchProject = async () => {
-    fetch(`http://localhost:5001/project/details?userid=${userid}&projectid=${projectid}`, {
+    try {
+      const resp = await fetch(`http://localhost:5001/project/details?userid=${userid}&projectid=${projectid}`, {
       method: 'GET',
       headers: {Authorization: `Bearer ${token}`,},
     })
-    .then(res => {
-      return res.json();
-    })
-    .then(data => {
+      const data = await resp.json()
       console.log(data);
       setProject(data)
-    })
+    } catch {
+      
+    }
+  };
+
+  const fetchSkills = async () => {
+    try {
+      const resp = await fetch(`http://localhost:5001/skills/view/project?userid=${userid}&projectid=${projectid}`, {
+        method: 'GET',
+        headers: {Authorization: `Bearer ${token}`,},
+      })
+      const data = await resp.json()
+      console.log(data);
+      setSkills(data)
+    } catch {
+
+    }
+    
   };
 
   return (
     <div>
-      <h2> Project </h2>
-      {project ? (<><p>{project}</p></>):(<><p>None</p></>)}
+      {projectid ? (
+        <>
+          <h2> Project: {project.title}</h2>
+          
+          <h4>Description:</h4>
+          <p>{project.additional}</p>
+          <h4>Background:</h4>
+          <p>{project.background}</p>
+          <h4>skills:</h4>
+          {Object.values(skills).map((value) => {
+            return <p>{value}</p>
+          })}
+        </>
+      ):(
+        <>
+          <h2>Project: </h2>
+          <p>None</p>
+        </>
+      )}
     </div>
   )
 }

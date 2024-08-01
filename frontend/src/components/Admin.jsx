@@ -129,6 +129,7 @@ const ManageProjects = () => {
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [assigned, setAssigned] = useState([]);
 
   useEffect(() => {
     const fetchProjectsAndGroups = async () => {
@@ -236,6 +237,28 @@ const ManageProjects = () => {
     }
   };
 
+  const handleAuto = async () => {
+    const response = await fetch('http://localhost:5001/allocate/auto', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    const data = await response.json();
+    console.log(data);
+    setAssigned(data);
+  }
+
+  const handleUnAuto = async () => {
+    const response = await fetch('http://localhost:5001/unallocate/auto', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    const data = await response;
+  }
+
   return (
     <div className="projects-container">
       <div className="groups-content">
@@ -253,6 +276,9 @@ const ManageProjects = () => {
           ))}
         </select>
         <button onClick={handleAssignProject} className="assign-project-button">Assign Project</button>
+        <button onClick={handleAuto} className="assign-project-button">Auto Assign All Projects</button>
+        <button onClick={handleUnAuto} className="assign-project-button">Auto Unassign All Project</button>
+        {assigned ? (<>{assigned.map(data => (<p>group: {data.group_id} matched with project: {data.project_id}</p>))}</>):(<></>)}
       </div>
     </div>
   );

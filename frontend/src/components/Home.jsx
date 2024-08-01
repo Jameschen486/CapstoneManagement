@@ -72,7 +72,7 @@ const Home = () => {
         <div className="login-form">
           <form onSubmit={handleLogin}>
             <input
-              type="email"
+              // type="email"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
