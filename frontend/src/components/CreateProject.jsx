@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../css/CreateProject.css';
 
 const CreateProject = () => {
   const [title, setTitle] = useState('');
@@ -15,9 +16,12 @@ const CreateProject = () => {
 
     const formData = new FormData();
     formData.append('userid', userId);
+    formData.append('ownerid', userId); // Set ownerid to userid
     formData.append('title', title);
-    if (ownerId) {
-      formData.append('ownerid', ownerId);
+
+    // Log the form data for debugging
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
     }
 
     try {
@@ -33,7 +37,6 @@ const CreateProject = () => {
       if (response.ok) {
         setMessage('Project created successfully!');
         setTitle('');
-        setOwnerId('');
         setTimeout(() => {
             navigate('/projects');
           }, 2000);  // Redirect after 2 seconds
@@ -47,25 +50,24 @@ const CreateProject = () => {
   };
 
   return (
-    <div>
-      <h1>Create Project</h1>
+    <div className='create-group-container'>
+      <div className='create-group-header'>
+        <h1>Create Project</h1>
+        <button onClick={() => navigate('/projects')} className='create-group-button'>Back</button>
+      </div>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {message && <p style={{ color: 'green' }}>{message}</p>}
-      <form onSubmit={handleCreateProject}>
+      <form onSubmit={handleCreateProject} className='content'>
         <input
+          className='group-name-input'
           type="text"
           placeholder="Project Title"
           value={title}
           onChange={e => setTitle(e.target.value)}
           required
         />
-        <input
-          type="text"
-          placeholder="Owner ID (optional)"
-          value={ownerId}
-          onChange={e => setOwnerId(e.target.value)}
-        />
-        <button type="submit">Create Project</button>
+        <button type="submit" className='create-group-button'>Create Project</button>
+        <p>You can add skills and update project detail after you create the project</p>
       </form>
     </div>
   );

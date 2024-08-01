@@ -262,7 +262,7 @@ const Dashboard = () => {
             </div>
             <p>Here you can manage your projects, view messages, student preferences and notifications.</p>
             <div className="icon-container">
-                  <button onClick={handleProjectsClick} aria-label="Projects">&#128202; Manage Projects</button>
+                  <button onClick={handleProjectsClick} aria-label="Projects">&#128202; Manage Projects and Skills</button>
                 </div>
           </div>
         );
