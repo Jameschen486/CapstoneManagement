@@ -239,3 +239,35 @@ export const ProjectBox = (props) => {
     </div>
   )
 }
+
+export const NotificationBox = (props) => {
+  const userid = localStorage.getItem('userId');
+  const token = localStorage.getItem('token');
+  // const showHideClassName = show ? "modal display-block" : "modal display-none";
+  const [notification, setNotfication] = useState([]);
+
+  useEffect(() => {
+    fetchNotifications()
+  }, [])
+  
+  const fetchNotifications = async () => {
+    try {
+      const resp = await fetch(`http://localhost:5001/notifications/view?userid=${userid}`, {
+        method: 'GET',
+        headers: {Authorization: `Bearer ${token}`,},
+      })
+      const data = await resp.json()
+      console.log(data);
+      setNotfication(data)
+    } catch {
+
+    }
+    
+  };
+
+  return (
+    <>
+    {notification ? (<>{notification.map((data) => {return(<p>{data.content}</p>)})}</>) : (<><p>No notifications yet.</p></>)}
+    </>
+  );
+}

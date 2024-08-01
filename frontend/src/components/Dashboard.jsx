@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../css/Dashboard.css';
 import Modal from './Modal';
 import {GroupIn} from './GroupIn';
+import { NotificationBox } from './utils';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -331,8 +332,9 @@ const Dashboard = () => {
       <div className="dashboard-content">
         {renderDashboardContent()}
       </div>
+      
       <Modal show={showNotificationModal} handleClose={() => setShowNotificationModal(false)} title="Notifications">
-        <p>No notifications yet.</p>
+        <NotificationBox/>
       </Modal>
       <Modal show={showMessageModal} handleClose={() => setShowMessageModal(false)} title="Messages">
         <p>No messages yet.</p>
