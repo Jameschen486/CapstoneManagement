@@ -262,12 +262,35 @@ export const NotificationBox = (props) => {
     } catch {
 
     }
-    
+  };
+
+  const deleteNotification = async (notifid) => {
+    try {
+      const resp = await fetch(`http://localhost:5001//notification/delete?userid=${userid}&notifid=${notifid}`, {
+        method: 'DELETE',
+        headers: {Authorization: `Bearer ${token}`,},
+      })
+      const data = await resp.json()
+      console.log(data);
+      fetchNotifications()
+    } catch {
+
+    }
   };
 
   return (
     <>
-    {notification ? (<>{notification.map((data) => {return(<p>{data.content}</p>)})}</>) : (<><p>No notifications yet.</p></>)}
+    {notification ? (
+      <>
+        {notification.map((data) => {return(
+        <div style={{padding:"5px"}}>
+          <button style={{margin:"5px"}} onClick={() => deleteNotification(data.notifid)}>X</button>
+          <span>{data.content}</span>
+        </div>)})}
+      </>
+    ) : (
+      <p>No notifications yet.</p>
+    )}
     </>
   );
 }
