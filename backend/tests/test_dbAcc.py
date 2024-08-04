@@ -3,56 +3,57 @@ import datetime
 import random
 
 def clear_users():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE users RESTART IDENTITY CASCADE")
-  dbAcc.conn.commit()
-  
+  stmt = "TRUNCATE users RESTART IDENTITY CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
+
 def clear_groups():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE groups RESTART IDENTITY CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE groups RESTART IDENTITY CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
   
 def clear_grouprequests():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE grouprequests CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE grouprequests CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
   
 def clear_projects():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE projects RESTART IDENTITY CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE projects RESTART IDENTITY CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
   
 def clear_skills():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE skills RESTART IDENTITY CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE skills RESTART IDENTITY CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
   
 def clear_reset_codes():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE resetcodes CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE resetcodes CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
   
 def clear_preferences():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE preferences CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE preferences CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
   
 def clear_notifs():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE notifications RESTART IDENTITY CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE notifications RESTART IDENTITY CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
   
 def clear_channels():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE accesschannels RESTART IDENTITY CASCADE")
-  dbAcc.conn.commit()
-  curs.execute("TRUNCATE channels RESTART IDENTITY CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE accesschannels RESTART IDENTITY CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
+  stmt = "TRUNCATE channels RESTART IDENTITY CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
   
 def clear_messages():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE messages RESTART IDENTITY CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE messages RESTART IDENTITY CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
   
 own_d = [0, "group@owner.com", "group", "owner", "password", 1]
 use_d = [0, "Email@provider.com", "me", "them", "password", 1]
@@ -496,6 +497,8 @@ def test_messages():
   use_d0[0] = dbAcc.create_user(use_d0[1], use_d0[4], use_d0[2], use_d0[3], use_d0[5])
   ch_d0 = [0, "groupchannel0"]
   ch_d0[0] = dbAcc.create_channel(ch_d0[0])
+  given = dbAcc.get_latest_message(ch_d0[0])
+  assert given == None
   #create message, get message
   msg_d0 = [0, use_d0[0], None, "a"]
   msg_d0[0] = dbAcc.create_message(ch_d0[0], msg_d0[1], msg_d0[3])
