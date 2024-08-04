@@ -10,9 +10,9 @@ from error import HTTPError
 client = helper.CLIENT
 
 def clear_users():
-  curs = dbAcc.conn.cursor()
-  curs.execute("TRUNCATE users RESTART IDENTITY CASCADE")
-  dbAcc.conn.commit()
+  stmt = "TRUNCATE users RESTART IDENTITY CASCADE"
+  vals = ()
+  dbAcc.run_psql_stmt(stmt, vals, commit=True)
 
 user_d0 = [0, "admin@provider.com", "admin", "them", "adminPassword", 3]
 user_d1 = [1, "Email@provider.com", "me", "them", "password", 0]

@@ -32,7 +32,8 @@ PORJECT_NAMES = [
 ]
 
 def truncate(table:str = None):
-    curs = dbAcc.conn.cursor()
+    conn = dbAcc.connpool.getconn()
+    curs = conn.cursor()
 
     if table is None:
         for t in TABLES:
@@ -40,7 +41,8 @@ def truncate(table:str = None):
     else:
         curs.execute(f"TRUNCATE {t} RESTART IDENTITY CASCADE")
 
-    dbAcc.conn.commit()
+    conn.commit()
+    dbAcc.connpool.putconn(conn)
 
 
 
